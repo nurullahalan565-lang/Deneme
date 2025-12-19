@@ -1,1 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.senin.app"
+        version="1.0.0"
+        xmlns="http://www.w3.org/ns/widgets">
 
+    <name>LyricalAI</name>
+    <description>HTML uygulamam</description>
+
+    <platform name="android">
+        <preference name="Fullscreen" value="true" />
+    </platform>
+
+</widget>
