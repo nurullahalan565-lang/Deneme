@@ -6,6 +6,10 @@
     <name>LyricalAI</name>
     <description>HTML uygulamam</description>
 
+    <content src="index.html" />
+
+    <icon src="icon.png" />
+
     <platform name="android">
         <preference name="Fullscreen" value="true" />
     </platform>
