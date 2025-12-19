@@ -2,34 +2,37 @@ name: Build APK
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-    - name: Setup Node
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
-    - name: Install Cordova
-      run: npm install -g cordova
+      - name: Install Cordova
+        run: npm install -g cordova
 
-    - name: Create App
-      run: |
-        cordova create app com.example.app MyApp
-        cd app
-        cordova platform add android
-        rm -rf www/*
-        cp ../index.html www/
-        cordova build android
+      - name: Create App
+        run: |
+          cordova create app com.example.app MyApp
+          cd app
+          cordova platform add android
+          rm -rf www/*
+          cp ../index.html www/
+          cordova build android
 
-    - name: Upload APK
-      uses: actions/upload-artifact@v3
-      with:
-        name: apk
-        path: app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
