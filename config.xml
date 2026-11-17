@@ -10,25 +10,20 @@
     <content src="index.html" />
     <icon src="icon.png" />
 
-    <!-- Dış API (Gemini) ve CDN bağlantıları için zorunlu izinler -->
     <access origin="*" />
     <allow-navigation href="*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
 
-    <!-- Genel Tercihler -->
     <preference name="Orientation" value="portrait" />
     <preference name="Fullscreen" value="true" />
-    <preference name="BackgroundColor" value="0xff000000" />
     <preference name="KeepRunning" value="true" />
     <preference name="AndroidInsecureFileModeEnabled" value="true" />
 
     <platform name="android">
-        <!-- Android SDK Sürümleri -->
         <preference name="android-minSdkVersion" value="24" />
         <preference name="android-targetSdkVersion" value="34" />
 
-        <!-- Ses ve Video Dosyası Seçebilmek İçin İzinler -->
         <config-file parent="/manifest" target="AndroidManifest.xml">
             <uses-permission android:name="android.permission.INTERNET" />
             <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
