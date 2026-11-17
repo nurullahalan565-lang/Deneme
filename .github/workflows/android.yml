@@ -16,25 +16,26 @@ jobs:
       - name: Node.js Kur
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
-      - name: Java 17 Kur (Android Build İçin)
+      - name: Java 17 Kur
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Android SDK Kur
-        uses: android-actions/setup-android@v3
+      - name: Android SDK Lisanslarını Onayla
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
-      - name: Cordova Kur ve Klasörleri Hazırla
+      - name: Cordova Projesini Hazırla ve Derle
         run: |
           npm install -g cordova
-          mkdir -p www
-          if [ -f "index.html" ]; then cp index.html www/index.html; fi
-
-      - name: Android Platformu Ekle ve APK Derle
-        run: |
+          cordova create build_app com.nurullah.lyricalai "LyricalAI"
+          cp config.xml build_app/config.xml
+          cp index.html build_app/www/index.html
+          if [ -f "icon.png" ]; then cp icon.png build_app/icon.png; fi
+          cd build_app
           cordova platform add android
           cordova build android --debug
 
@@ -42,5 +43,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: LyricalAI-APK
-          path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
+          path: build_app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
           
