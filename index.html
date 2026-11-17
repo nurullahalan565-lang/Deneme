@@ -2,6 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; media-src * data: blob:; style-src * 'unsafe-inline';">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>LyricalAI Studio Pro</title>
     <meta name="mobile-web-app-capable" content="yes">
@@ -38,7 +39,7 @@
         .font-default { font-family: 'Inter', sans-serif; }
 
         .glass-panel {
-            background: rgba(24, 24, 28, 0.72);
+            background: rgba(24, 24, 28, 0.78);
             backdrop-filter: blur(28px);
             -webkit-backdrop-filter: blur(28px);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -102,7 +103,7 @@
     <script type="text/babel">
         const { useState, useRef, useEffect, useCallback, useMemo } = React;
 
-        // --- INDEXED DB MEDIA STORAGE (Dosyaların sayfa yenilenince kaybolmasını engeller) ---
+        // --- INDEXED DB MEDIA STORAGE ---
         const DB_NAME = 'LyricalAI_MediaDB_v1';
         const STORE_NAME = 'media_files';
 
@@ -263,13 +264,14 @@
         // --- SYNC FLOATING BUTTON ---
         const SyncButton = ({ onClick, type, visible }) => {
             if (!visible) return null;
+            const iconName = type === 'up' ? 'ArrowUp' : type === 'down' ? 'ArrowDown' : 'Crosshair';
             return (
                 <div className="absolute bottom-44 left-1/2 -translate-x-1/2 z-40 sync-btn-enter">
                     <button
                         onClick={(e) => { e.stopPropagation(); onClick(e); }}
                         className="bg-blue-600/90 hover:bg-blue-500 text-white px-5 py-2.5 rounded-full flex items-center gap-2.5 text-xs font-bold shadow-2xl shadow-blue-950 border border-blue-400/40 backdrop-blur-xl active:scale-95 transition-all"
                     >
-                        <Icon 'ArrowDown' 'ArrowUp' 'Crosshair'} 'down' 'up' : ? name="{type" size="{16}" type="=="/>
+                        <Icon name={iconName} size={16} />
                         <span>Satıra Odaklan</span>
                     </button>
                 </div>
@@ -348,11 +350,11 @@
                 <div className="fixed inset-0 z-[80] bg-black/95 backdrop-blur-3xl flex flex-col fade-in">
                     <div className="pt-10 px-6 pb-4 flex justify-between items-center border-b border-white/10">
                         <button onClick={onClose} className="p-2.5 bg-white/5 rounded-full hover:bg-white/10 text-gray-300">
-                            <Icon name="X" size="{20}"/>
+                            <Icon name="X" size={20} />
                         </button>
                         <div className="text-center">
                             <h3 className="text-white font-bold text-base">Ritim Stüdyosu</h3>
-                            <p className="text-[11px] text-gray-400">Space veya ekrana dokunarak yakala</p>
+                            <p className="text-[11px] text-gray-400">Ekrana dokunarak satırları yakala</p>
                         </div>
                         <button onClick={handleSave} className="px-4 py-2 bg-blue-600 rounded-full text-white font-bold text-xs hover:bg-blue-500 shadow-lg shadow-blue-900/40">
                             Kaydet
@@ -369,12 +371,12 @@
                         {!isStarted ? (
                             <div className="text-center space-y-6 max-w-sm">
                                 <div className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-blue-600 to-purple-600 mx-auto flex items-center justify-center shadow-2xl shadow-blue-900/50">
-                                    <Icon className="text-white" name="Fingerprint" size="{44}"/>
+                                    <Icon className="text-white" name="Fingerprint" size={44} />
                                 </div>
                                 <div>
                                     <h2 className="text-2xl font-bold text-white mb-2">Canlı Zamanlama</h2>
                                     <p className="text-gray-400 text-sm leading-relaxed">
-                                        Şarkı baştan çalacak. Sanatçı her satıra başladığı anda aşağıdaki büyük butona (veya <b>Boşluk</b> tuşuna) bas.
+                                        Şarkı baştan çalacak. Sanatçı her satıra başladığı anda aşağıdaki büyük butona bas.
                                     </p>
                                 </div>
                                 <div className="glass-panel p-3 rounded-2xl flex items-center justify-between text-xs">
@@ -432,7 +434,7 @@
 
                                 <div className="w-full flex items-center justify-between px-4">
                                     <button onClick={handleUndo} disabled={activeIndex === 0} className="text-xs text-gray-400 hover:text-white disabled:opacity-30 flex items-center gap-1 py-2 px-3 rounded-xl bg-white/5">
-                                        <Icon name="RotateCcw" size="{14}"/> Geri Al
+                                        <Icon name="RotateCcw" size={14} /> Geri Al
                                     </button>
                                     <span className="text-gray-400 font-mono text-xs">{activeIndex} / {tempLyrics.length}</span>
                                 </div>
@@ -444,7 +446,7 @@
         };
 
         // --- PROJECTS LIST VIEW ---
-        const ProjectsView = ({ projects, setView, loadProject, deleteProject, effectiveApiKey, setError }) => {
+        const ProjectsView = ({ projects, setView, loadProject, deleteProject, effectiveApiKey }) => {
             const [search, setSearch] = useState("");
             const filtered = useMemo(() =>
                 projects.filter(p =>
@@ -458,10 +460,10 @@
                     <div className="pt-12 pb-4 px-6 flex justify-between items-center z-10">
                         <div>
                             <h1 className="text-3xl font-black text-white font-cinzel tracking-tight">LyricalAI</h1>
-                            <p className="text-gray-400 text-[11px] tracking-widest uppercase">Studio Pro v4.0</p>
+                            <p className="text-gray-400 text-[11px] tracking-widest uppercase">Studio Pro v4.1</p>
                         </div>
                         <button onClick={() => setView('settings')} className="glass-button p-3 rounded-full text-gray-200 hover:text-white transition-all active:scale-95 relative">
-                            <Icon name="Settings" size="{20}"/>
+                            <Icon name="Settings" size={20} />
                             {!effectiveApiKey && <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-amber-500 rounded-full animate-ping"></span>}
                         </button>
                     </div>
@@ -469,7 +471,7 @@
                     {projects.length > 0 && (
                         <div className="px-6 pb-4">
                             <div className="relative">
-                                <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" name="Search" size="{16}"/>
+                                <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" name="Search" size={16} />
                                 <input
                                     type="text"
                                     value={search}
@@ -485,7 +487,7 @@
                         {filtered.length === 0 ? (
                             <div className="h-72 flex flex-col items-center justify-center text-gray-500 mt-10 text-center">
                                 <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
-                                    <Icon className="text-gray-600" name="Disc3" size="{32}"/>
+                                    <Icon className="text-gray-600" name="Disc3" size={32} />
                                 </div>
                                 <p className="font-semibold text-gray-300">{projects.length === 0 ? "Henüz proje oluşturmadın" : "Eşleşen proje bulunamadı"}</p>
                                 <p className="text-xs text-gray-500 mt-1 max-w-xs">Yeni bir parça yükleyip yapay zeka ile saniyeler içinde senkronize sözler oluştur.</p>
@@ -501,8 +503,8 @@
                                             className="glass-panel p-3.5 rounded-2xl flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer hover:border-white/20"
                                         >
                                             <div className="flex items-center gap-3.5 overflow-hidden">
-                                                <div className="w-13 h-13 w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-white/10 relative">
-                                                    <ArtComp/>
+                                                <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-white/10 relative">
+                                                    <ArtComp />
                                                     <span className={`absolute bottom-1 right-1 w-2 h-2 rounded-full ${p.themeMode === 'nostalgic' ? 'bg-purple-400' : 'bg-blue-400'}`}></span>
                                                 </div>
                                                 <div className="overflow-hidden">
@@ -518,7 +520,7 @@
                                                 onClick={(e) => deleteProject(e, p.id)}
                                                 className="p-2.5 text-gray-500 hover:text-red-400 rounded-xl hover:bg-red-500/10 transition-colors"
                                             >
-                                                <Icon name="Trash2" size="{18}"/>
+                                                <Icon name="Trash2" size={18} />
                                             </button>
                                         </div>
                                     );
@@ -532,7 +534,7 @@
                             onClick={() => setView('createProject')}
                             className="w-full max-w-md bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-4 rounded-full shadow-xl shadow-blue-950/60 flex items-center justify-center gap-2 font-bold transition-all active:scale-95 border border-white/15"
                         >
-                            <Icon name="Plus" size="{20}"/> Yeni Proje Oluştur
+                            <Icon name="Plus" size={20} /> Yeni Proje Oluştur
                         </button>
                     </div>
                 </div>
@@ -557,7 +559,6 @@
                 const audioUrl = URL.createObjectURL(audioFile);
                 const videoUrl = (mode === 'nostalgic' && customBgFile) ? URL.createObjectURL(customBgFile) : null;
 
-                // IndexedDB'ye kalıcı kaydet
                 await saveMediaBlob(`${projectId}_audio`, audioFile);
                 if (customBgFile) {
                     await saveMediaBlob(`${projectId}_video`, customBgFile);
@@ -600,7 +601,7 @@
                 <div className="fixed inset-0 bg-black flex flex-col z-30 slide-in-bottom">
                     <div className="pt-12 px-6 pb-3 flex items-center justify-between">
                         <button onClick={() => step === 1 ? setView('projects') : setStep(1)} className="text-blue-400 flex items-center gap-1 font-semibold text-sm">
-                            <Icon name="ChevronLeft" size="{18}"/> {step === 1 ? "İptal" : "Geri"}
+                            <Icon name="ChevronLeft" size={18} /> {step === 1 ? "İptal" : "Geri"}
                         </button>
                         <div className="flex gap-1.5">
                             <span className={`h-1.5 w-6 rounded-full transition-colors ${step >= 1 ? 'bg-blue-500' : 'bg-gray-800'}`}></span>
@@ -626,11 +627,15 @@
                                         onClick={() => document.getElementById('wiz-audio').click()}
                                         className={`w-full p-7 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2.5 transition-all ${audioFile ? 'border-blue-500 bg-blue-500/10' : 'border-gray-800 bg-[#141417] hover:border-gray-700'}`}
                                     >
-                                        <Icon "CheckCircle2" "UploadCloud"} "text-blue-400" "text-gray-500"} : ? className="{audioFile" name="{audioFile" size="{32}"/>
+                                        <Icon
+                                            className={audioFile ? "text-blue-400" : "text-gray-500"}
+                                            name={audioFile ? "CheckCircle2" : "UploadCloud"}
+                                            size={32}
+                                        />
                                         <span className="text-sm font-semibold text-gray-200 truncate max-w-[85%]">
                                             {audioFile ? audioFile.name : "MP3, WAV, M4A veya OGG Seç"}
                                         </span>
-                                        {audioFile && <span className="text-[11px] text-blue-400">{(audioFile.size / (1024 * 1024)).toFixed(1)} MB • Yerel hafızaya kaydedilecek</span>}
+                                        {audioFile && <span className="text-[11px] text-blue-400">{(audioFile.size / (1024 * 1024)).toFixed(1)} MB • Cihaza kaydedilecek</span>}
                                     </button>
                                     <input
                                         type="file"
@@ -685,7 +690,7 @@
                                             onClick={() => setMode('classic')}
                                             className={`p-4 rounded-2xl border text-left transition-all ${mode === 'classic' ? 'bg-blue-600/20 border-blue-500' : 'bg-[#141417] border-white/5'}`}
                                         >
-                                            <Icon 'classic' 'text-blue-400 'text-gray-500 : ? className="{mode" mb-2' mb-2'} name="AlignLeft" size="{22}"/>
+                                            <Icon className={mode === 'classic' ? 'text-blue-400 mb-2' : 'text-gray-500 mb-2'} name="AlignLeft" size={22} />
                                             <h4 className="font-bold text-sm text-white">Klasik Akış</h4>
                                             <p className="text-[11px] text-gray-400 mt-0.5">Apple Music tarzı kayan sözler</p>
                                         </button>
@@ -693,7 +698,7 @@
                                             onClick={() => setMode('nostalgic')}
                                             className={`p-4 rounded-2xl border text-left transition-all ${mode === 'nostalgic' ? 'bg-purple-600/20 border-purple-500' : 'bg-[#141417] border-white/5'}`}
                                         >
-                                            <Icon 'nostalgic' 'text-gray-500 'text-purple-400 : ? className="{mode" mb-2' mb-2'} name="Film" size="{22}"/>
+                                            <Icon className={mode === 'nostalgic' ? 'text-purple-400 mb-2' : 'text-gray-500 mb-2'} name="Film" size={22} />
                                             <h4 className="font-bold text-sm text-white">Sinematik Video</h4>
                                             <p className="text-[11px] text-gray-400 mt-0.5">Arka plan videosu + altyazı</p>
                                         </button>
@@ -707,7 +712,11 @@
                                             onClick={() => document.getElementById('wiz-video-custom').click()}
                                             className={`w-full p-5 rounded-2xl border-2 border-dashed flex items-center justify-center gap-3 transition-all ${customBgFile ? 'border-purple-500 bg-purple-500/10' : 'border-gray-800 bg-[#141417]'}`}
                                         >
-                                            <Icon "CheckCircle2" "Video"} "text-gray-500"} "text-purple-400" : ? className="{customBgFile" name="{customBgFile" size="{22}"/>
+                                            <Icon
+                                                className={customBgFile ? "text-purple-400" : "text-gray-500"}
+                                                name={customBgFile ? "CheckCircle2" : "Video"}
+                                                size={22}
+                                            />
                                             <span className="text-xs font-medium text-gray-300 truncate max-w-[80%]">
                                                 {customBgFile ? customBgFile.name : "MP4 / WebM Video Seç"}
                                             </span>
@@ -726,7 +735,7 @@
                                                 className={`w-full p-3.5 rounded-xl border text-left flex justify-between items-center ${f.class} ${font === f.id ? 'bg-white/10 border-white/30 text-white' : 'bg-[#141417] border-transparent text-gray-400'}`}
                                             >
                                                 <span className="text-base">{f.name}</span>
-                                                {font === f.id && <Icon className="text-blue-400" name="Check" size="{16}"/>}
+                                                {font === f.id && <Icon className="text-blue-400" name="Check" size={16} />}
                                             </button>
                                         ))}
                                     </div>
@@ -780,7 +789,7 @@
                 <div className="fixed inset-0 bg-black flex flex-col z-50 slide-in-right w-full h-full">
                     <div className="pt-12 px-6 pb-5 flex items-center bg-black/80 backdrop-blur-md z-20 border-b border-white/10">
                         <button onClick={() => setView('projects')} className="text-blue-400 flex items-center gap-1 font-semibold text-sm z-30">
-                            <Icon name="ChevronLeft" size="{18}"/> Projeler
+                            <Icon name="ChevronLeft" size={18} /> Projeler
                         </button>
                         <h2 className="absolute left-0 right-0 text-center text-lg font-bold text-white pointer-events-none">Stüdyo Ayarları</h2>
                     </div>
@@ -788,7 +797,7 @@
                     <div className="flex-1 overflow-y-auto p-6 space-y-6">
                         <div className="glass-panel p-5 rounded-3xl space-y-5">
                             <div className="flex items-center gap-2.5 text-white font-bold text-base">
-                                <Icon className="text-blue-400" name="Sparkles" size="{20}"/> Gemini Yapılandırması
+                                <Icon className="text-blue-400" name="Sparkles" size={20} /> Gemini Yapılandırması
                             </div>
 
                             <div>
@@ -822,13 +831,6 @@
                                     ))}
                                 </div>
                             </div>
-                        </div>
-
-                        <div className="glass-panel p-5 rounded-3xl space-y-2 text-xs text-gray-400">
-                            <p className="text-white font-bold text-sm">Klavye Kısayolları (Masaüstü)</p>
-                            <p>• <b>Space:</b> Oynat / Duraklat</p>
-                            <p>• <b>Sol / Sağ Ok:</b> 5 saniye geri / ileri sar</p>
-                            <p>• <b>Ritim Stüdyosu:</b> Space tuşu ile canlı satır işaretleme</p>
                         </div>
                     </div>
                 </div>
@@ -899,10 +901,10 @@
                     <div className={`fixed inset-y-0 left-0 w-full max-w-md bg-[#121215] border-r border-white/10 z-[60] flex flex-col transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                         <div className="pt-11 px-5 pb-4 border-b border-white/10 flex justify-between items-center bg-[#121215] shrink-0">
                             <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                                <Icon className="text-blue-400" name="SlidersHorizontal" size="{18}"/> Stüdyo Editörü
+                                <Icon className="text-blue-400" name="SlidersHorizontal" size={18} /> Stüdyo Editörü
                             </h2>
                             <button onClick={handleSaveAndClose} className="bg-blue-600 hover:bg-blue-500 px-4 py-1.5 rounded-full text-white text-xs font-bold flex items-center gap-1">
-                                <Icon name="Check" size="{16}"/> Bitti
+                                <Icon name="Check" size={16} /> Bitti
                             </button>
                         </div>
 
@@ -911,11 +913,11 @@
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
                                         <label className="text-[10px] text-gray-500 font-bold uppercase">Şarkı Adı</label>
-                                        <input type="text" value={localTitle} onChange={e => setLocalTitle(e.target.value)} className="w-full bg-transparent border-b border-gray-700 focus:border-blue-500 text-white text-sm py-1"/>
+                                        <input type="text" value={localTitle} onChange={e => setLocalTitle(e.target.value)} className="w-full bg-transparent border-b border-gray-700 focus:border-blue-500 text-white text-sm py-1" />
                                     </div>
                                     <div>
                                         <label className="text-[10px] text-gray-500 font-bold uppercase">Sanatçı</label>
-                                        <input type="text" value={localArtist} onChange={e => setLocalArtist(e.target.value)} className="w-full bg-transparent border-b border-gray-700 focus:border-blue-500 text-white text-sm py-1"/>
+                                        <input type="text" value={localArtist} onChange={e => setLocalArtist(e.target.value)} className="w-full bg-transparent border-b border-gray-700 focus:border-blue-500 text-white text-sm py-1" />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 pt-1">
@@ -931,11 +933,11 @@
 
                             <div className="grid grid-cols-2 gap-2">
                                 <button onClick={startManualSync} className="bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 py-3 px-3 rounded-xl font-bold text-xs border border-blue-500/30 flex items-center justify-center gap-1.5">
-                                    <Icon name="Fingerprint" size="{16}"/> Ritim Tut (Tap)
+                                    <Icon name="Fingerprint" size={16} /> Ritim Tut (Tap)
                                 </button>
                                 {hasApiKey && (
                                     <button onClick={() => { handleSaveAndClose(); onReanalyze(); }} className="bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 py-3 px-3 rounded-xl font-bold text-xs border border-purple-500/30 flex items-center justify-center gap-1.5">
-                                        <Icon name="Sparkles" size="{16}"/> AI Yeniden Çöz
+                                        <Icon name="Sparkles" size={16} /> AI Yeniden Çöz
                                     </button>
                                 )}
                             </div>
@@ -999,7 +1001,7 @@
                                             onClick={() => setLyrics(prev => prev.filter((_, i) => i !== idx))}
                                             className="text-gray-600 hover:text-red-400 p-1.5 shrink-0"
                                         >
-                                            <Icon name="Trash2" size="{15}"/>
+                                            <Icon name="Trash2" size={15} />
                                         </button>
                                     </div>
                                 ))}
@@ -1070,7 +1072,6 @@
 
             const sortLyricsByTime = (arr) => [...arr].sort((a, b) => a.ms - b.ms);
 
-            // Web Audio API Visualizer Bağlantısı
             const setupAudioAnalyser = useCallback(() => {
                 if (!audioRef.current || audioCtxRef.current) return;
                 try {
@@ -1086,7 +1087,6 @@
                 } catch (e) {}
             }, []);
 
-            // Projeyi Yükle (Önce parametre URL, yoksa IndexedDB'den çek)
             const loadProject = async (project, initialAudioUrl = null, initialVideoUrl = null) => {
                 setCurrentProject(project);
                 setLyrics(project.lyrics || []);
@@ -1145,7 +1145,6 @@
                 setView('projects');
             };
 
-            // 60fps Zaman ve Ses Frekans Döngüsü
             useEffect(() => {
                 const freqData = new Uint8Array(32);
                 const loop = () => {
@@ -1168,7 +1167,6 @@
                 return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
             }, [isPlaying]);
 
-            // Audio Metadata & Event Listeners
             useEffect(() => {
                 const audio = audioRef.current;
                 if (!audio) return;
@@ -1185,7 +1183,6 @@
                 };
             }, [isPlaying, fileBlob]);
 
-            // Video Play/Pause Sync
             useEffect(() => {
                 const video = videoRef.current;
                 if (video && currentProject?.themeMode === 'nostalgic' && videoBlob) {
@@ -1194,7 +1191,6 @@
                 }
             }, [isPlaying, currentProject, videoBlob]);
 
-            // Aktif Satır Hesaplama
             useEffect(() => {
                 if (lyrics.length === 0) {
                     setActiveIndex(-1);
@@ -1212,7 +1208,6 @@
                 if (found !== activeIndex) setActiveIndex(found);
             }, [currentTime, lyrics, activeIndex]);
 
-            // Kullanıcı Kaydırma Kontrolü
             const handleScroll = useCallback(() => {
                 if (currentProject?.themeMode !== 'classic' || !isPlaying || isAutoScrolling.current || !lyricsContainerRef.current || activeIndex === -1) return;
                 userHasScrolled.current = true;
@@ -1228,7 +1223,6 @@
                 }
             }, [activeIndex, isPlaying, currentProject]);
 
-            // Otomatik Yumuşak Kaydırma
             useEffect(() => {
                 if (view !== 'player' || userHasScrolled.current || !isPlaying || activeIndex === -1 || currentProject?.themeMode !== 'classic' || !lyricsContainerRef.current) return;
                 const container = lyricsContainerRef.current;
@@ -1271,26 +1265,6 @@
                 setSyncState(prev => ({ ...prev, visible: false }));
             }, [fileBlob, duration]);
 
-            // Klavye Kısayolları
-            useEffect(() => {
-                const onKey = (e) => {
-                    if (view !== 'player' || isLeftMenuOpen || manualSyncMode) return;
-                    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
-                    if (e.code === 'Space') {
-                        e.preventDefault();
-                        togglePlay();
-                    } else if (e.code === 'ArrowLeft') {
-                        e.preventDefault();
-                        seekAudio(currentTime - 5000);
-                    } else if (e.code === 'ArrowRight') {
-                        e.preventDefault();
-                        seekAudio(currentTime + 5000);
-                    }
-                };
-                window.addEventListener('keydown', onKey);
-                return () => window.removeEventListener('keydown', onKey);
-            }, [view, isLeftMenuOpen, manualSyncMode, togglePlay, seekAudio, currentTime]);
-
             const handleReupload = async (e) => {
                 const file = e.target.files[0];
                 if (!file || !currentProject) return;
@@ -1307,14 +1281,13 @@
                 updateProjectAndSave({ bgVideoType: 'custom' });
             };
 
-            // --- GEMINI AI AUDIO TRANSCRIPTION ---
             const analyzeFile = async (file, projectToUpdate, modeOverride = null) => {
                 if (!effectiveApiKey) {
                     setError("Analiz için Ayarlar'dan Gemini API Key girmelisin.");
                     return;
                 }
                 if (file.size > 19 * 1024 * 1024) {
-                    setError("Dosya boyutu 19MB'dan büyük. Tarayıcı üzerinden doğrudan analiz için daha sıkıştırılmış bir MP3 kullan.");
+                    setError("Dosya boyutu 19MB'dan büyük. Daha küçük boyutlu bir MP3 kullan.");
                     return;
                 }
 
@@ -1445,14 +1418,14 @@ Return ONLY valid JSON matching this exact schema:
                         onPlay={() => setIsPlaying(true)}
                         onPause={() => setIsPlaying(false)}
                     />
-                    <input type="file" ref={fileInputRef} accept="audio/*" className="hidden" onChange={handleReupload}/>
-                    <input type="file" ref={customVideoInputRef} accept="video/*" className="hidden" onChange={handleCustomVideoReupload}/>
+                    <input type="file" ref={fileInputRef} accept="audio/*" className="hidden" onChange={handleReupload} />
+                    <input type="file" ref={customVideoInputRef} accept="video/*" className="hidden" onChange={handleCustomVideoReupload} />
 
                     {error && (
                         <div onClick={() => setError("")} className="fixed top-12 left-4 right-4 max-w-lg mx-auto z-[120] glass-panel bg-red-950/90 border-red-500/50 p-4 rounded-2xl text-white flex items-center gap-3 shadow-2xl fade-in cursor-pointer">
-                            <Icon name="AlertTriangle" className="text-red-400 shrink-0" size={20}/>
+                            <Icon name="AlertTriangle" className="text-red-400 shrink-0" size={20} />
                             <span className="text-xs font-medium leading-relaxed flex-1">{error}</span>
-                            <Icon name="X" size={16} className="text-white/60 shrink-0"/>
+                            <Icon name="X" size={16} className="text-white/60 shrink-0" />
                         </div>
                     )}
 
@@ -1496,7 +1469,6 @@ Return ONLY valid JSON matching this exact schema:
                             loadProject={loadProject}
                             deleteProject={deleteProject}
                             effectiveApiKey={effectiveApiKey}
-                            setError={setError}
                         />
                     )}
 
@@ -1521,7 +1493,6 @@ Return ONLY valid JSON matching this exact schema:
                     <div className={`fixed inset-0 bg-black transition-transform duration-500 ${view === 'player' ? 'translate-x-0' : 'translate-x-full'}`}>
                         {currentProject && view === 'player' && (
                             <>
-                                {/* BACKGROUND LAYER */}
                                 {currentProject.themeMode === 'nostalgic' ? (
                                     <div className="absolute inset-0 z-0 overflow-hidden bg-black">
                                         {videoBlob ? (
@@ -1542,7 +1513,7 @@ Return ONLY valid JSON matching this exact schema:
                                                 onClick={() => customVideoInputRef.current.click()}
                                                 className="glass-button px-3.5 py-1.5 rounded-full text-[11px] text-gray-300 flex items-center gap-1.5 hover:text-white"
                                             >
-                                                <Icon name="Video" size={13}/> {videoBlob ? "Videoyu Değiştir" : "Arka Plan Videosu Ekle"}
+                                                <Icon name="Video" size={13} /> {videoBlob ? "Videoyu Değiştir" : "Arka Plan Videosu Ekle"}
                                             </button>
                                         </div>
                                     </div>
@@ -1556,7 +1527,6 @@ Return ONLY valid JSON matching this exact schema:
                                     ></div>
                                 )}
 
-                                {/* TOP BAR */}
                                 <div className="pt-11 px-6 pb-4 z-30 absolute top-0 left-0 right-0 flex items-center justify-between">
                                     <button onClick={handleBackToMenu} className="glass-button py-2 px-4 rounded-full text-white flex items-center gap-1 text-xs font-bold">
                                         <Icon name="ChevronLeft" size={16} /> Projeler
@@ -1566,10 +1536,9 @@ Return ONLY valid JSON matching this exact schema:
                                     </button>
                                 </div>
 
-                                {/* MISSING AUDIO FALLBACK */}
                                 {!fileBlob && (
                                     <div className="absolute inset-0 z-40 flex flex-col items-center justify-center p-8 text-center bg-black/85 backdrop-blur-xl">
-                                        <Icon name="FileAudio" size={56} className="text-blue-400 mb-5"/>
+                                        <Icon name="FileAudio" size={56} className="text-blue-400 mb-5" />
                                         <h3 className="text-white font-bold text-xl mb-2">{currentProject.fileName}</h3>
                                         <p className="text-gray-400 text-xs mb-6 max-w-xs leading-relaxed">
                                             Bu projenin ses dosyası yerel önbellekte bulunamadı. Devam etmek için dosyayı yeniden bağla.
@@ -1580,7 +1549,6 @@ Return ONLY valid JSON matching this exact schema:
                                     </div>
                                 )}
 
-                                {/* CLASSIC HEADER */}
                                 {currentProject.themeMode === 'classic' && (
                                     <div className="absolute top-24 left-6 right-6 z-20">
                                         <div className="flex items-center gap-4">
@@ -1595,7 +1563,6 @@ Return ONLY valid JSON matching this exact schema:
                                     </div>
                                 )}
 
-                                {/* LYRICS VIEWPORT */}
                                 <div
                                     ref={lyricsContainerRef}
                                     onScroll={handleScroll}
@@ -1648,7 +1615,6 @@ Return ONLY valid JSON matching this exact schema:
                                     <SyncButton onClick={onSyncClick} type={syncState.type} visible={syncState.visible} />
                                 )}
 
-                                {/* BOTTOM TRANSPORT CONTROLS */}
                                 {fileBlob && (
                                     <div className="absolute bottom-0 left-0 right-0 pb-9 pt-6 px-6 bg-gradient-to-t from-black via-black/95 to-transparent z-30 flex flex-col items-center">
                                         <div className="w-full max-w-xl">
@@ -1700,4 +1666,3 @@ Return ONLY valid JSON matching this exact schema:
     </script>
 </body>
 </html>
- 
