@@ -34,11 +34,7 @@ jobs:
           cordova create build_app com.nurullah.lyricalai "LyricalAI"
           cp config.xml build_app/config.xml
           cp index.html build_app/www/index.html
-          if [ -f "icon.png" ]; then
-            convert icon.png -resize 512x512! PNG32:build_app/icon.png
-          else
-            sed -i '/<icon/d' build_app/config.xml
-          fi
+          if [ -f "icon.png" ]; then cp icon.png build_app/icon.png; else sed -i '/<icon/d' build_app/config.xml; fi
           cd build_app
           cordova platform add android
           cordova build android --debug
@@ -48,4 +44,3 @@ jobs:
         with:
           name: LyricalAI-APK
           path: build_app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
-          
