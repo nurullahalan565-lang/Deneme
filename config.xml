@@ -8,6 +8,7 @@
     <description>AI Destekli Şarkı Sözü ve Ritim Stüdyosu</description>
 
     <content src="index.html" />
+    <icon src="icon.png" />
 
     <!-- Dış API (Gemini) ve CDN bağlantıları için zorunlu izinler -->
     <access origin="*" />
