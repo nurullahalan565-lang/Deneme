@@ -1,17 +1,39 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.senin.app"
+<widget id="com.nurullah.lyricalai"
         version="1.0.0"
-        xmlns="http://www.w3.org/ns/widgets">
+        xmlns="http://www.w3.org/ns/widgets"
+        xmlns:android="http://schemas.android.com/apk/res/android">
 
     <name>LyricalAI</name>
-    <description>HTML uygulamam</description>
+    <description>AI Destekli Şarkı Sözü ve Ritim Stüdyosu</description>
 
     <content src="index.html" />
 
-    <icon src="icon.png" />
+    <!-- Dış API (Gemini) ve CDN bağlantıları için zorunlu izinler -->
+    <access origin="*" />
+    <allow-navigation href="*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+
+    <!-- Genel Tercihler -->
+    <preference name="Orientation" value="portrait" />
+    <preference name="Fullscreen" value="true" />
+    <preference name="BackgroundColor" value="0xff000000" />
+    <preference name="KeepRunning" value="true" />
+    <preference name="AndroidInsecureFileModeEnabled" value="true" />
 
     <platform name="android">
-        <preference name="Fullscreen" value="true" />
+        <!-- Android SDK Sürümleri -->
+        <preference name="android-minSdkVersion" value="24" />
+        <preference name="android-targetSdkVersion" value="34" />
+
+        <!-- Ses ve Video Dosyası Seçebilmek İçin İzinler -->
+        <config-file parent="/manifest" target="AndroidManifest.xml">
+            <uses-permission android:name="android.permission.INTERNET" />
+            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+            <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+            <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+        </config-file>
     </platform>
 
 </widget>
