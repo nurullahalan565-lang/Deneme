@@ -3,161 +3,1037 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>LyricalAI Studio</title>
+    <title>LyricalAI Studio Pro</title>
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Courier+Prime:wght@700&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Courier+Prime:wght@700&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { background-color: #000; color: white; margin: 0; overflow: hidden; user-select: none; -webkit-tap-highlight-color: transparent; font-family: 'Inter', sans-serif; overscroll-behavior: none; }
+        * { box-sizing: border-box; }
+        body {
+            background-color: #000;
+            color: #fff;
+            margin: 0;
+            overflow: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Inter', sans-serif;
+            overscroll-behavior: none;
+        }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
         .font-courier { font-family: 'Courier Prime', monospace; }
         .font-playfair { font-family: 'Playfair Display', serif; }
         .font-cinzel { font-family: 'Cinzel', serif; }
         .font-marker { font-family: 'Permanent Marker', cursive; }
         .font-default { font-family: 'Inter', sans-serif; }
-        .glass-panel { background: rgba(28, 28, 30, 0.75); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .glass-button { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-        .slide-in-right { animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .slide-in-bottom { animation: slideInBottom 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        .glass-panel {
+            background: rgba(24, 24, 28, 0.72);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-button {
+            background: rgba(255, 255, 255, 0.09);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
         @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
         @keyframes slideInBottom { from { transform: translateY(100%); } to { transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
-        .sync-btn-enter { animation: slideUpFade 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-        @keyframes slideUpFade { from { opacity: 0; transform: translate(-50%, 40px) scale(0.8); } to { opacity: 1; transform: translate(-50%, 0) scale(1); } }
-        @keyframes ripple { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(2); opacity: 0; } }
-        .animate-ripple { animation: ripple 0.6s ease-out forwards; }
-        @keyframes countPulse { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
-        .count-anim { animation: countPulse 1s ease-out infinite; }
-        @keyframes breathe { 0% { background-size: 100% 100%; opacity: 0.4; } 50% { background-size: 140% 140%; opacity: 0.7; } 100% { background-size: 100% 100%; opacity: 0.4; } }
-        .breathing-bg { background: radial-gradient(circle at 0% 50%, #333333 0%, #000000 60%); animation: breathe 8s ease-in-out infinite; }
-        .clean-shadow { text-shadow: 0 2px 10px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.5); }
-        .active-line-indicator { position: absolute; left: -16px; top: 0; bottom: 0; width: 4px; background-color: rgba(255, 255, 255, 0.5); border-radius: 4px; }
-        .icon-morph { position: absolute; top: 0; left: 0; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .icon-visible { opacity: 1; transform: scale(1) rotate(0deg); }
-        .icon-hidden-up { opacity: 0; transform: scale(0.5) rotate(-90deg); }
-        .icon-hidden-down { opacity: 0; transform: scale(0.5) rotate(90deg); }
-        input, textarea { appearance: none; -webkit-appearance: none; outline: none; }
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translate(-50%, 30px) scale(0.85); }
+            to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+        }
+        @keyframes ripple {
+            0% { transform: scale(0.95); opacity: 0.7; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+        @keyframes countPulse {
+            0% { transform: scale(0.6); opacity: 0; }
+            45% { transform: scale(1.15); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0; }
+        }
+
+        .slide-in-right { animation: slideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .slide-in-bottom { animation: slideInBottom 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .fade-in { animation: fadeIn 0.25s ease-out forwards; }
+        .sync-btn-enter { animation: slideUpFade 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+        .animate-ripple { animation: ripple 0.55s ease-out forwards; }
+        .count-anim { animation: countPulse 0.95s ease-out infinite; }
+
+        .clean-shadow {
+            text-shadow: 0 4px 18px rgba(0,0,0,0.9), 0 0 32px rgba(0,0,0,0.65);
+        }
+        .active-line-bar {
+            position: absolute;
+            left: 0;
+            top: 10%;
+            bottom: 10%;
+            width: 4px;
+            background: linear-gradient(180deg, #60a5fa, #a855f7);
+            border-radius: 99px;
+            box-shadow: 0 0 12px rgba(96, 165, 250, 0.7);
+        }
+        .lyrics-mask {
+            mask-image: linear-gradient(to bottom, transparent 0%, black 16%, black 84%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 16%, black 84%, transparent 100%);
+        }
+        input, textarea, select { appearance: none; -webkit-appearance: none; outline: none; }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body>
     <div id="root"></div>
+
     <script type="text/babel">
-        const { useState, useRef, useEffect, useCallback } = React;
-        const Icon = ({ name, size = 24, className, ...props }) => { if (!window.lucide || !window.lucide.icons) return null; const iconData = window.lucide.icons[name] || window.lucide.icons.HelpCircle; return React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", className, ...props }, iconData.map((c, i) => React.createElement(c[0], { key: i, ...c[1] }))); };
-        const ArtCyber = () => (<svg viewBox="0 0 100 100" className="w-full h-full bg-[#050505]"><rect width="100" height="100" fill="#111" /><circle cx="50" cy="50" r="25" fill="none" stroke="#7928ca" strokeWidth="1"/><circle cx="50" cy="50" r="35" fill="none" stroke="#333" strokeWidth="0.5" strokeDasharray="4 2" /><path d="M50 25 L50 75 M25 50 L75 50" stroke="#fff" strokeWidth="0.5" opacity="0.2" /></svg>);
-        const ArtVinyl = () => (<svg viewBox="0 0 100 100" className="w-full h-full bg-[#1a1a1a]"><circle cx="50" cy="50" r="45" fill="#111" stroke="#333" strokeWidth="1"/><circle cx="50" cy="50" r="15" fill="#eab308" /><circle cx="50" cy="50" r="2" fill="#000" /><text x="50" y="45" fontSize="4" textAnchor="middle" fill="#000" fontWeight="bold" fontFamily="monospace">GEMINI</text></svg>);
-        const ArtAbstract = () => (<svg viewBox="0 0 100 100" className="w-full h-full bg-[#0f172a]"><rect x="20" y="20" width="60" height="60" rx="10" fill="#3b82f6" opacity="0.5"/><circle cx="70" cy="30" r="10" fill="#ef4444"/><circle cx="30" cy="70" r="15" fill="#10b981" opacity="0.8"/></svg>);
-        const ArtWave = () => (<svg viewBox="0 0 100 100" className="w-full h-full bg-[#000]"><path d="M0 50 Q 25 30 50 50 T 100 50" stroke="#8b5cf6" strokeWidth="2" fill="none"/><path d="M0 60 Q 25 40 50 60 T 100 60" stroke="#ec4899" strokeWidth="2" fill="none" opacity="0.6"/></svg>);
-        const ArtMinimal = () => (<svg viewBox="0 0 100 100" className="w-full h-full bg-[#fff]"><circle cx="50" cy="50" r="30" fill="#000"/><text x="50" y="55" fontSize="10" textAnchor="middle" fill="#fff" fontWeight="bold">LRYC</text></svg>);
-        const ArtGeo = () => (<svg viewBox="0 0 100 100" className="w-full h-full bg-[#18181b]"><polygon points="50,15 90,85 10,85" fill="none" stroke="#fbbf24" strokeWidth="2"/><circle cx="50" cy="55" r="10" fill="#fbbf24"/></svg>);
-        const ALBUM_ARTS = [ArtCyber, ArtVinyl, ArtAbstract, ArtWave, ArtMinimal, ArtGeo];
-        const STORAGE_KEY_PROJECTS = 'lyrical_projects_v5';
-        const STORAGE_KEY_SETTINGS = 'lyrical_settings_v3';
-        const ANIMATION_OFFSET_MS = 300;
-        const FONTS = [{ name: "Modern", class: "font-default", id: 'default' }, { name: "Daktilo", class: "font-courier", id: 'courier' }, { name: "Zarif", class: "font-playfair", id: 'playfair' }, { name: "Sinematik", class: "font-cinzel", id: 'cinzel' }, { name: "El Yazısı", class: "font-marker", id: 'marker' }];
+        const { useState, useRef, useEffect, useCallback, useMemo } = React;
 
-        const SyncButton = ({ onClick, type, visible }) => {
-            if (!visible) return null;
-            return (<div className="absolute bottom-40 left-1/2 -translate-x-1/2 z-[50] sync-btn-enter"><button onClick={(e) => { e.stopPropagation(); e.nativeEvent.stopImmediatePropagation(); onClick(e); }} className="glass-button bg-[#007AFF] text-white px-6 py-3 rounded-full flex items-center gap-3 text-sm font-bold shadow-xl border border-blue-400/30 overflow-hidden relative active:scale-95 transition-transform"><div className="relative w-5 h-5 flex items-center justify-center"><div className={`icon-morph ${type === 'up' ? 'icon-visible' : 'icon-hidden-down'}`}><Icon name="ArrowUp" size={20} /></div><div className={`icon-morph ${type === 'down' ? 'icon-visible' : 'icon-hidden-up'}`}><Icon name="ArrowDown" size={20} /></div><div className={`icon-morph ${type === 'center' ? 'icon-visible' : 'icon-hidden-up'}`}><Icon name="Crosshair" size={18} /></div></div><span className="whitespace-nowrap">Senkronize Et</span></button></div>);
+        // --- INDEXED DB MEDIA STORAGE (Dosyaların sayfa yenilenince kaybolmasını engeller) ---
+        const DB_NAME = 'LyricalAI_MediaDB_v1';
+        const STORE_NAME = 'media_files';
+
+        const openMediaDB = () => new Promise((resolve, reject) => {
+            const req = indexedDB.open(DB_NAME, 1);
+            req.onupgradeneeded = () => {
+                const db = req.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    db.createObjectStore(STORE_NAME);
+                }
+            };
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+        });
+
+        const saveMediaBlob = async (key, blob) => {
+            if (!blob) return;
+            try {
+                const db = await openMediaDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(STORE_NAME, 'readwrite');
+                    tx.objectStore(STORE_NAME).put(blob, key);
+                    tx.oncomplete = () => resolve(true);
+                    tx.onerror = () => reject(tx.error);
+                });
+            } catch (e) { console.warn('IndexedDB kayıt hatası:', e); }
         };
 
-        const ManualSyncView = ({ lyrics, setLyrics, onClose, audioRef, setIsPlaying }) => {
-            const [activeIndex, setActiveIndex] = useState(0);
-            const [tempLyrics, setTempLyrics] = useState(JSON.parse(JSON.stringify(lyrics)));
-            const [countdown, setCountdown] = useState(null);
-            const [isStarted, setIsStarted] = useState(false);
-            const [rippleKey, setRippleKey] = useState(0);
-            const startProcess = () => { if (audioRef.current) { const p = audioRef.current.play(); if (p !== undefined) { p.then(() => { audioRef.current.pause(); audioRef.current.currentTime = 0; setIsStarted(true); setCountdown(3); }).catch(() => { setIsStarted(true); setCountdown(3); }); } } else { setIsStarted(true); setCountdown(3); } };
-            useEffect(() => { if (countdown === null) return; if (countdown > 0) { const t = setTimeout(() => setCountdown(countdown - 1), 1000); return () => clearTimeout(t); } else if (countdown === 0) { if (audioRef.current) { audioRef.current.currentTime = 0; audioRef.current.play().catch(e=>{}); setIsPlaying(true); } setCountdown(null); } }, [countdown, audioRef, setIsPlaying]);
-            const handleTap = (e) => { e.stopPropagation(); if (!audioRef.current) return; setRippleKey(prev => prev + 1); const currentTimeMs = Math.floor(audioRef.current.currentTime * 1000); const newL = [...tempLyrics]; if (activeIndex < newL.length) { newL[activeIndex].ms = currentTimeMs; setTempLyrics(newL); setActiveIndex(prev => prev + 1); } };
-            const handleSave = () => { setLyrics(tempLyrics); onClose(); };
-            return (<div className="fixed inset-0 z-[80] bg-black/95 backdrop-blur-3xl flex flex-col animate-in fade-in zoom-in-95 duration-300"><div className="pt-12 px-6 pb-4 flex justify-between items-center z-10"><button onClick={onClose} className="p-2 bg-white/5 rounded-full hover:bg-white/10 text-gray-400"><Icon name="X" size={20}/></button><h3 className="text-white font-bold text-lg">Ritim Stüdyosu</h3><button onClick={handleSave} className="px-4 py-2 bg-blue-600 rounded-full text-white font-bold text-sm hover:bg-blue-500">Kaydet</button></div><div className="flex-1 flex flex-col items-center justify-center p-6 relative">{countdown !== null && (<div className="absolute inset-0 flex items-center justify-center z-50 bg-black/60 backdrop-blur-sm"><div className="text-9xl font-black text-white count-anim font-mono">{countdown}</div></div>)}{!isStarted ? (<div className="text-center space-y-8 animate-in slide-in-from-bottom-10 fade-in duration-500"><div className="w-32 h-32 rounded-full bg-gradient-to-tr from-blue-600 to-purple-600 mx-auto flex items-center justify-center shadow-2xl shadow-blue-900/50"><Icon name="Music2" size={48} className="text-white" /></div><div><h2 className="text-2xl font-bold text-white mb-2">Hazır mısın?</h2><p className="text-gray-400 max-w-xs mx-auto">Müzik başlayacak. Her satırın başlaması gerektiği anda butona bas.</p></div><button onClick={startProcess} className="px-12 py-4 bg-white text-black font-bold text-lg rounded-full hover:scale-105 active:scale-95 transition-all shadow-[0_0_40px_rgba(255,255,255,0.3)]">BAŞLAT</button></div>) : (<div className="w-full h-full flex flex-col items-center justify-between py-8"><div className="text-center space-y-4 max-w-md w-full flex-1 flex flex-col justify-center"><p className="text-blue-400 text-xs font-bold uppercase tracking-[0.2em] mb-2">SIRADAKİ SATIR</p><div className="w-full min-h-[150px] h-auto flex items-center justify-center p-4 rounded-2xl bg-white/5 border border-white/10"><p key={activeIndex} className="text-white text-2xl md:text-3xl font-bold leading-tight transition-all duration-300 animate-in slide-in-from-bottom-4 fade-in break-words">{activeIndex < tempLyrics.length ? tempLyrics[activeIndex].text : "Şarkı Sonu"}</p></div></div><div className="relative py-8"><div key={rippleKey} className="absolute inset-0 rounded-full border border-blue-500/50 animate-ripple pointer-events-none"></div><button onClick={handleTap} disabled={activeIndex >= tempLyrics.length} className="w-40 h-40 md:w-56 md:h-56 rounded-full bg-gradient-to-b from-[#1a1a1a] to-black border border-white/10 active:border-blue-500/50 shadow-[0_0_60px_rgba(0,0,0,0.8)] flex flex-col items-center justify-center gap-2 group transition-all active:scale-95 active:shadow-[0_0_30px_rgba(37,99,235,0.3)] touch-manipulation cursor-pointer z-20"><div className="w-20 h-20 rounded-full bg-blue-600/20 group-active:bg-blue-600 flex items-center justify-center transition-colors duration-100 pointer-events-none"><div className="w-3 h-3 bg-blue-500 rounded-full group-active:bg-white shadow-[0_0_10px_currentColor]"></div></div><span className="text-gray-500 font-bold text-sm tracking-widest group-active:text-blue-400 pointer-events-none">BAS</span></button></div><p className="text-gray-600 font-mono text-sm">{activeIndex} / {tempLyrics.length}</p></div>)}</div></div>);
+        const getMediaBlob = async (key) => {
+            try {
+                const db = await openMediaDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(STORE_NAME, 'readonly');
+                    const req = tx.objectStore(STORE_NAME).get(key);
+                    req.onsuccess = () => resolve(req.result || null);
+                    req.onerror = () => reject(req.error);
+                });
+            } catch (e) { return null; }
         };
 
-        const ProjectsView = ({ projects, setView, loadProject, deleteProject, effectiveApiKey, setError }) => (
-            <div className="fixed inset-0 h-full flex flex-col bg-black z-10">
-                 <div className="pt-12 pb-6 px-6 flex justify-between items-center z-10 bg-gradient-to-b from-black to-transparent">
-                    <div><h1 className="text-3xl font-bold text-white font-cinzel tracking-tight">LyricalAI</h1><p className="text-gray-400 text-xs tracking-wider uppercase opacity-70">Studio v3.9</p></div>
-                    <button onClick={() => setView('settings')} className="glass-button p-3 rounded-full text-gray-300 hover:text-white transition-all active:scale-95"><Icon name="Settings" /></button>
-                </div>
-                <div className="flex-1 overflow-y-auto px-6 pb-32 no-scrollbar">
-                    {projects.length === 0 ? (<div className="h-64 flex flex-col items-center justify-center text-gray-600 opacity-60 mt-12"><Icon name="Music" size={48} className="mb-4" /><p>Henüz proje yok.</p></div>) : (<div className="space-y-3">{projects.map(p => (<div key={p.id} onClick={() => loadProject(p, null, null)} className="glass-panel p-4 rounded-2xl flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer group"><div className="flex items-center gap-4 overflow-hidden"><div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${p.themeMode === 'nostalgic' ? 'bg-purple-900/30 text-purple-400' : 'bg-blue-900/30 text-blue-400'}`}><Icon name={p.themeMode === 'nostalgic' ? 'Video' : 'Music2'} size={20} /></div><div className="overflow-hidden"><h3 className="font-bold text-white truncate">{p.name}</h3><p className="text-xs text-gray-400 truncate">{p.artist || "Bilinmiyor"}</p></div></div><button onClick={(e) => deleteProject(e, p.id)} className="p-3 text-gray-600 hover:text-red-400"><Icon name="Trash2" size={18}/></button></div>))}</div>)}
-                </div>
-                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 sync-btn-enter w-full px-12"><button onClick={() => { if(!effectiveApiKey) { setError("Önce Ayarlardan API Key Gir."); setView('settings'); } else { setView('createProject'); } }} className="w-full bg-[#007AFF] hover:bg-[#0062cc] text-white py-4 rounded-full shadow-lg shadow-blue-900/30 flex items-center justify-center gap-2 font-bold transition-all active:scale-95 border border-blue-400/20 backdrop-blur-md"><Icon name="Plus" size={20} /> Yeni Proje</button></div>
-            </div>
+        const deleteProjectMedia = async (projectId) => {
+            try {
+                const db = await openMediaDB();
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                tx.objectStore(STORE_NAME).delete(`${projectId}_audio`);
+                tx.objectStore(STORE_NAME).delete(`${projectId}_video`);
+            } catch (e) {}
+        };
+
+        // --- ICON COMPONENT ---
+        const Icon = ({ name, size = 22, className = "", ...props }) => {
+            if (!window.lucide || !window.lucide.icons) return null;
+            const iconData = window.lucide.icons[name] || window.lucide.icons.HelpCircle;
+            return React.createElement(
+                'svg',
+                {
+                    xmlns: "http://www.w3.org/2000/svg",
+                    width: size,
+                    height: size,
+                    viewBox: "0 0 24 24",
+                    fill: "none",
+                    stroke: "currentColor",
+                    strokeWidth: 2,
+                    strokeLinecap: "round",
+                    strokeLinejoin: "round",
+                    className,
+                    ...props
+                },
+                iconData.map((c, i) => React.createElement(c[0], { key: i, ...c[1] }))
+            );
+        };
+
+        // --- PROCEDURAL ALBUM ARTS ---
+        const ArtCyber = () => (
+            <svg viewBox="0 0 100 100" className="w-full h-full bg-[#09090b]">
+                <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#3b82f6"/><stop offset="100%" stopColor="#9333ea"/></linearGradient></defs>
+                <rect width="100" height="100" fill="#09090b" />
+                <circle cx="50" cy="50" r="28" fill="none" stroke="url(#g1)" strokeWidth="2.5"/>
+                <circle cx="50" cy="50" r="38" fill="none" stroke="#333" strokeWidth="0.8" strokeDasharray="4 3" />
+                <circle cx="50" cy="50" r="6" fill="url(#g1)" />
+            </svg>
+        );
+        const ArtVinyl = () => (
+            <svg viewBox="0 0 100 100" className="w-full h-full bg-[#18181b]">
+                <circle cx="50" cy="50" r="44" fill="#0f0f11" stroke="#27272a" strokeWidth="1.5"/>
+                <circle cx="50" cy="50" r="30" fill="none" stroke="#27272a" strokeWidth="0.6"/>
+                <circle cx="50" cy="50" r="16" fill="#eab308" />
+                <circle cx="50" cy="50" r="3" fill="#09090b" />
+            </svg>
+        );
+        const ArtAbstract = () => (
+            <svg viewBox="0 0 100 100" className="w-full h-full bg-[#0f172a]">
+                <rect x="18" y="18" width="64" height="64" rx="16" fill="#3b82f6" opacity="0.45"/>
+                <circle cx="70" cy="30" r="12" fill="#f43f5e" opacity="0.85"/>
+                <circle cx="32" cy="70" r="16" fill="#10b981" opacity="0.75"/>
+            </svg>
+        );
+        const ArtWave = () => (
+            <svg viewBox="0 0 100 100" className="w-full h-full bg-[#050505]">
+                <path d="M0 45 Q 25 20 50 45 T 100 45" stroke="#8b5cf6" strokeWidth="2.5" fill="none"/>
+                <path d="M0 58 Q 25 33 50 58 T 100 58" stroke="#ec4899" strokeWidth="2.5" fill="none" opacity="0.75"/>
+                <path d="M0 71 Q 25 46 50 71 T 100 71" stroke="#3b82f6" strokeWidth="1.5" fill="none" opacity="0.5"/>
+            </svg>
+        );
+        const ArtGeo = () => (
+            <svg viewBox="0 0 100 100" className="w-full h-full bg-[#121215]">
+                <polygon points="50,14 88,82 12,82" fill="none" stroke="#fbbf24" strokeWidth="2.2"/>
+                <circle cx="50" cy="56" r="10" fill="#fbbf24" opacity="0.9"/>
+            </svg>
         );
 
-        const CreateProjectWizard = ({ setView, createNewProject, analyzeFile }) => {
-            const [step, setStep] = useState(1);
-            const [name, setName] = useState("");
-            const [audioFile, setAudioFile] = useState(null);
-            const [mode, setMode] = useState('classic');
-            const [font, setFont] = useState('default');
-            const [customBgFile, setCustomBgFile] = useState(null);
+        const ALBUM_ARTS = [ArtCyber, ArtVinyl, ArtAbstract, ArtWave, ArtGeo];
+        const STORAGE_KEY_PROJECTS = 'lyrical_projects_v6';
+        const STORAGE_KEY_SETTINGS = 'lyrical_settings_v4';
+        const ANIMATION_OFFSET_MS = 180;
 
-            const handleFinish = async () => {
-                if(!name || !audioFile) return;
-                const audioUrl = URL.createObjectURL(audioFile);
-                const videoUrl = (mode === 'nostalgic' && customBgFile) ? URL.createObjectURL(customBgFile) : null;
-                const newP = { id: Date.now().toString(), createdAt: new Date().toISOString(), name, artist: "Bilinmiyor", themeMode: mode, fontId: font, fileName: audioFile.name, fileType: audioFile.type, bgVideoType: (mode === 'nostalgic' && customBgFile) ? 'custom' : 'none', bgVideoPath: (mode === 'nostalgic' && customBgFile) ? customBgFile.name : null, lyrics: [] };
-                
-                // PASS BLOB URLS DIRECTLY HERE - FIXING THE RACE CONDITION
-                createNewProject(newP, audioUrl, videoUrl); 
-                await analyzeFile(audioFile, newP, mode);
-            };
+        const FONTS = [
+            { name: "Modern (Inter)", class: "font-default", id: 'default' },
+            { name: "Daktilo (Courier)", class: "font-courier", id: 'courier' },
+            { name: "Zarif (Playfair)", class: "font-playfair", id: 'playfair' },
+            { name: "Sinematik (Cinzel)", class: "font-cinzel", id: 'cinzel' },
+            { name: "El Yazısı (Marker)", class: "font-marker", id: 'marker' }
+        ];
 
+        // --- LRC PARSER & FORMATTER ---
+        const parseLRC = (lrcText) => {
+            const lines = lrcText.split(/\r?\n/);
+            const result = [];
+            const regex = /\[(\d{1,2}):(\d{2})(?:[.:](\d{1,3}))?\](.*)/;
+            for (const raw of lines) {
+                const match = raw.trim().match(regex);
+                if (match) {
+                    const mins = parseInt(match[1], 10);
+                    const secs = parseInt(match[2], 10);
+                    const msStr = match[3] || "0";
+                    const ms = msStr.length === 2 ? parseInt(msStr, 10) * 10 : parseInt(msStr.padEnd(3, '0').slice(0, 3), 10);
+                    const text = match[4].trim();
+                    if (text) {
+                        result.push({ ms: mins * 60000 + secs * 1000 + ms, text });
+                    }
+                }
+            }
+            return result.sort((a, b) => a.ms - b.ms);
+        };
+
+        const exportToLRC = (lyrics, title = "", artist = "") => {
+            const header = `[ti:${title}]\n[ar:${artist}]\n[by:LyricalAI Studio]\n\n`;
+            const body = lyrics.map(l => {
+                const totalMs = Math.max(0, Math.floor(l.ms));
+                const mins = Math.floor(totalMs / 60000);
+                const secs = Math.floor((totalMs % 60000) / 1000);
+                const hundredths = Math.floor((totalMs % 1000) / 10);
+                return `[${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(hundredths).padStart(2, '0')}] ${l.text}`;
+            }).join('\n');
+            return header + body;
+        };
+
+        // --- SYNC FLOATING BUTTON ---
+        const SyncButton = ({ onClick, type, visible }) => {
+            if (!visible) return null;
             return (
-                <div className="fixed inset-0 bg-black flex flex-col z-30 slide-in-bottom">
-                    <div className="pt-12 px-6 pb-4 flex items-center"><button onClick={() => step === 1 ? setView('projects') : setStep(step-1)} className="text-blue-500 flex items-center gap-1 font-medium"><Icon name="ChevronLeft"/> {step === 1 ? "İptal" : "Geri"}</button></div>
-                    <div className="px-8 pt-2 pb-6"><h2 className="text-3xl font-bold text-white"><span className="text-gray-500 text-lg block mb-1">Adım {step}/2</span>{step === 1 ? "Proje Detayları" : "Görünüm & Atmosfer"}</h2></div>
-                    <div className="flex-1 overflow-y-auto px-6 no-scrollbar pb-32">
-                        {step === 1 ? (<div className="space-y-6 fade-in"><div><label className="text-gray-400 text-xs font-bold uppercase tracking-wider ml-1 mb-2 block">Şarkı Adı</label><input type="text" value={name} onChange={e=>setName(e.target.value)} className="w-full bg-[#1c1c1e] text-white p-4 rounded-2xl border border-gray-800 focus:border-blue-500 text-lg" placeholder="Şarkı İsmi..." /></div><div><label className="text-gray-400 text-xs font-bold uppercase tracking-wider ml-1 mb-2 block">Ses Dosyası</label><button onClick={()=>document.getElementById('wiz-audio').click()} className={`w-full p-8 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-3 transition-all ${audioFile ? 'border-blue-500 bg-blue-500/10' : 'border-gray-800 bg-[#1c1c1e]'}`}><Icon name={audioFile ? "CheckCircle" : "Music"} size={32} className={audioFile ? "text-blue-500" : "text-gray-500"} /><span className="text-sm font-medium text-gray-300 truncate max-w-[80%]">{audioFile ? audioFile.name : "Müzik Seç"}</span></button><input type="file" id="wiz-audio" accept="audio/*" className="hidden" onChange={e=>{const f=e.target.files[0]; if(f){setAudioFile(f); if(!name)setName(f.name.split('.')[0]);}}} /></div></div>) : (<div className="space-y-8 fade-in"><div className="grid grid-cols-2 gap-3"><button onClick={()=>setMode('classic')} className={`p-4 rounded-xl border text-left transition-all ${mode==='classic'?'bg-blue-600/20 border-blue-500':'bg-[#1c1c1e] border-transparent'}`}><Icon name="Music2" className={mode==='classic'?'text-blue-400':'text-gray-500'} mb-2/><h4 className="font-bold">Klasik</h4></button><button onClick={()=>setMode('nostalgic')} className={`p-4 rounded-xl border text-left transition-all ${mode==='nostalgic'?'bg-purple-600/20 border-purple-500':'bg-[#1c1c1e] border-transparent'}`}><Icon name="Video" className={mode==='nostalgic'?'text-purple-400':'text-gray-500'} mb-2/><h4 className="font-bold">Nostaljik</h4></button></div>{mode === 'nostalgic' && (<div className="animate-in slide-in-from-top-2"><label className="text-gray-400 text-xs font-bold uppercase tracking-wider ml-1 mb-2 block">Arka Plan Videosu</label><button onClick={()=>document.getElementById('wiz-video-custom').click()} className={`w-full p-6 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all ${customBgFile ? 'border-blue-500 bg-blue-500/10' : 'border-gray-800 bg-[#1c1c1e]'}`}><Icon name={customBgFile ? "CheckCircle" : "Video"} size={24} className={customBgFile ? "text-blue-500" : "text-gray-500"} /><span className="text-xs font-medium text-gray-300 truncate max-w-[90%]">{customBgFile ? customBgFile.name : "Kendi Videonu Yükle"}</span></button><input type="file" id="wiz-video-custom" accept="video/*" className="hidden" onChange={e=>{const f=e.target.files[0]; if(f){setCustomBgFile(f);}}} /></div>)}<div><label className="text-gray-400 text-xs font-bold uppercase tracking-wider ml-1 mb-2 block">Yazı Tipi</label><div className="space-y-2">{FONTS.map(f => (<button key={f.id} onClick={()=>setFont(f.id)} className={`w-full p-3 rounded-xl border text-left flex justify-between items-center ${f.class} ${font===f.id ? 'bg-white/10 border-white/30 text-white' : 'bg-[#1c1c1e] border-transparent text-gray-400'}`}>{f.name} {font===f.id && <Icon name="Check" size={16} className="text-blue-400"/>}</button>))}</div></div></div>)}
-                    </div>
-                    <div className="absolute bottom-10 left-0 right-0 px-6 z-20"><button onClick={step === 1 ? () => setStep(2) : handleFinish} disabled={!name || !audioFile || (mode === 'nostalgic' && !customBgFile)} className={`w-full py-4 rounded-full font-bold text-lg transition-all ${(!name || !audioFile || (mode === 'nostalgic' && !customBgFile)) ? 'bg-gray-800 text-gray-500' : 'bg-[#007AFF] text-white shadow-lg shadow-blue-900/40'}`}>{step === 1 ? "Devam Et" : "Oluştur & Analiz Et"}</button></div>
+                <div className="absolute bottom-44 left-1/2 -translate-x-1/2 z-40 sync-btn-enter">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onClick(e); }}
+                        className="bg-blue-600/90 hover:bg-blue-500 text-white px-5 py-2.5 rounded-full flex items-center gap-2.5 text-xs font-bold shadow-2xl shadow-blue-950 border border-blue-400/40 backdrop-blur-xl active:scale-95 transition-all"
+                    >
+                        <Icon 'ArrowDown' 'ArrowUp' 'Crosshair'} 'down' 'up' : ? name="{type" size="{16}" type="=="/>
+                        <span>Satıra Odaklan</span>
+                    </button>
                 </div>
             );
         };
 
-        const SettingsView = ({ setView, settings, saveSettings }) => (
-            <div className="fixed inset-0 bg-black flex flex-col z-50 slide-in-right w-full h-full">
-                <div className="pt-12 px-6 pb-6 flex items-center bg-black/80 backdrop-blur-md z-20 border-b border-white/10 shrink-0"><button onClick={() => setView('projects')} className="text-blue-500 flex items-center gap-1 font-medium z-30 relative"><Icon name="ChevronLeft"/> Projeler</button><h2 className="absolute left-0 right-0 text-center text-xl font-bold text-white pointer-events-none">Ayarlar</h2></div>
-                <div className="flex-1 overflow-y-auto p-6 space-y-6"><div className="glass-panel p-6 rounded-2xl space-y-6"><div className="flex items-center gap-2 text-white font-bold text-lg"><Icon name="Key" className="text-yellow-500"/> Gemini Yapılandırması</div><div><label className="text-gray-500 text-xs font-bold ml-1 mb-2 block uppercase tracking-wider">API Key</label><input type="password" value={settings.apiKey} onChange={(e) => saveSettings({...settings, apiKey: e.target.value})} className="w-full bg-[#1c1c1e] text-white p-4 rounded-xl border border-gray-800 focus:border-blue-500 font-mono text-sm" placeholder="AIza..." /></div><div><label className="text-gray-500 text-xs font-bold ml-1 mb-2 block uppercase tracking-wider">Model İsmi</label><input type="text" value={settings.modelName} onChange={(e) => saveSettings({...settings, modelName: e.target.value})} className="w-full bg-[#1c1c1e] text-white p-4 rounded-xl border border-gray-800 focus:border-blue-500 font-mono text-sm" /></div></div><p className="text-center text-gray-800 text-xs font-mono pt-4">LyricalAI v3.9 (Blob Fix)</p></div>
-            </div>
-        );
+        // --- MANUAL TAP SYNC STUDIO ---
+        const ManualSyncView = ({ lyrics, setLyrics, onClose, audioRef, setIsPlaying }) => {
+            const [activeIndex, setActiveIndex] = useState(0);
+            const [tempLyrics, setTempLyrics] = useState(() => lyrics.map(l => ({ ...l })));
+            const [countdown, setCountdown] = useState(null);
+            const [isStarted, setIsStarted] = useState(false);
+            const [rippleKey, setRippleKey] = useState(0);
+            const [offsetMs, setOffsetMs] = useState(0);
 
-        const EditorDrawer = ({ isOpen, onClose, lyrics, setLyrics, currentProject, updateProjectAndSave, startManualSync }) => {
-            const [localTitle, setLocalTitle] = useState(currentProject?.name || "");
-            const [localArtist, setLocalArtist] = useState(currentProject?.artist || "");
-            useEffect(() => { if (currentProject) { setLocalTitle(currentProject.name); setLocalArtist(currentProject.artist || "Bilinmiyor"); } }, [currentProject]);
-            const handleMetaSave = () => { updateProjectAndSave({ name: localTitle, artist: localArtist, lyrics: lyrics }); onClose(); };
-            return (<div className={`fixed inset-y-0 left-0 w-full max-w-md bg-[#1c1c1e] z-[60] transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}><div className="pt-12 p-6 border-b border-white/10 flex justify-between items-center bg-[#1c1c1e] z-10"><h2 className="text-xl font-bold text-white flex items-center gap-2"><Icon name="Edit3" size={18} className="text-blue-500"/> Editör</h2><button onClick={handleMetaSave} className="bg-white/10 p-2 rounded-full text-white"><Icon name="Check" size={20} /></button></div><div className="flex-1 overflow-y-auto p-4 space-y-4 pb-32 no-scrollbar h-full"><div className="bg-black/40 p-4 rounded-xl space-y-3"><div><label className="text-xs text-gray-500 font-bold uppercase">Şarkı</label><input type="text" value={localTitle} onChange={e=>setLocalTitle(e.target.value)} className="w-full bg-transparent border-b border-gray-700 focus:border-blue-500 text-white py-1"/></div><div><label className="text-xs text-gray-500 font-bold uppercase">Sanatçı</label><input type="text" value={localArtist} onChange={e=>setLocalArtist(e.target.value)} className="w-full bg-transparent border-b border-gray-700 focus:border-blue-500 text-white py-1"/></div></div><button onClick={startManualSync} className="w-full bg-blue-900/30 text-blue-400 py-3 rounded-xl font-bold text-sm border border-blue-500/30 flex items-center justify-center gap-2"><Icon name="Fingerprint" size={16}/> Manuel Ritim Tut (Tap Sync)</button><div className="flex justify-between items-center mt-4 px-2"><label className="text-xs text-blue-400 font-bold uppercase">Zaman (ms) - Söz</label><button onClick={() => setLyrics([...lyrics, {text:"Yeni Satır", ms: (lyrics[lyrics.length-1]?.ms || 0) + 2000}])} className="text-xs bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full">+ Ekle</button></div>{lyrics.map((line, idx) => (<div key={idx} className="flex gap-2 items-center bg-black p-3 rounded-xl border border-white/10"><input type="number" value={line.ms} onChange={(e) => {const n=[...lyrics]; n[idx].ms=parseInt(e.target.value)||0; setLyrics(n)}} className="w-16 bg-transparent text-blue-400 text-sm font-mono text-right" /><textarea rows={1} value={line.text} onChange={(e) => {const n=[...lyrics]; n[idx].text=e.target.value; setLyrics(n)}} className="flex-1 bg-transparent text-white text-sm resize-none ml-2" /><button onClick={() => setLyrics(lyrics.filter((_, i) => i !== idx))} className="text-gray-600 hover:text-red-500 p-2"><Icon name="Trash2" size={16} /></button></div>))}</div></div>);
+            const startProcess = () => {
+                if (audioRef.current) {
+                    audioRef.current.pause();
+                    audioRef.current.currentTime = 0;
+                }
+                setIsStarted(true);
+                setCountdown(3);
+            };
+
+            useEffect(() => {
+                if (countdown === null) return;
+                if (countdown > 0) {
+                    const t = setTimeout(() => setCountdown(c => c - 1), 900);
+                    return () => clearTimeout(t);
+                } else {
+                    if (audioRef.current) {
+                        audioRef.current.currentTime = 0;
+                        audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+                    }
+                    setCountdown(null);
+                }
+            }, [countdown, audioRef, setIsPlaying]);
+
+            const handleTap = useCallback(() => {
+                if (!audioRef.current || countdown !== null || activeIndex >= tempLyrics.length) return;
+                setRippleKey(prev => prev + 1);
+                const currentTimeMs = Math.max(0, Math.floor(audioRef.current.currentTime * 1000) + offsetMs);
+                setTempLyrics(prev => {
+                    const copy = [...prev];
+                    copy[activeIndex] = { ...copy[activeIndex], ms: currentTimeMs };
+                    return copy;
+                });
+                setActiveIndex(prev => prev + 1);
+            }, [audioRef, countdown, activeIndex, tempLyrics.length, offsetMs]);
+
+            const handleUndo = () => {
+                if (activeIndex > 0) setActiveIndex(prev => prev - 1);
+            };
+
+            useEffect(() => {
+                const onKeyDown = (e) => {
+                    if (isStarted && countdown === null && (e.code === 'Space' || e.code === 'Enter')) {
+                        e.preventDefault();
+                        handleTap();
+                    }
+                };
+                window.addEventListener('keydown', onKeyDown);
+                return () => window.removeEventListener('keydown', onKeyDown);
+            }, [isStarted, countdown, handleTap]);
+
+            const handleSave = () => {
+                if (audioRef.current) {
+                    audioRef.current.pause();
+                    setIsPlaying(false);
+                }
+                setLyrics([...tempLyrics].sort((a, b) => a.ms - b.ms));
+                onClose();
+            };
+
+            return (
+                <div className="fixed inset-0 z-[80] bg-black/95 backdrop-blur-3xl flex flex-col fade-in">
+                    <div className="pt-10 px-6 pb-4 flex justify-between items-center border-b border-white/10">
+                        <button onClick={onClose} className="p-2.5 bg-white/5 rounded-full hover:bg-white/10 text-gray-300">
+                            <Icon name="X" size="{20}"/>
+                        </button>
+                        <div className="text-center">
+                            <h3 className="text-white font-bold text-base">Ritim Stüdyosu</h3>
+                            <p className="text-[11px] text-gray-400">Space veya ekrana dokunarak yakala</p>
+                        </div>
+                        <button onClick={handleSave} className="px-4 py-2 bg-blue-600 rounded-full text-white font-bold text-xs hover:bg-blue-500 shadow-lg shadow-blue-900/40">
+                            Kaydet
+                        </button>
+                    </div>
+
+                    <div className="flex-1 flex flex-col items-center justify-center p-6 relative">
+                        {countdown !== null && (
+                            <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/75 backdrop-blur-md">
+                                <div className="text-8xl font-black text-white count-anim font-mono">{countdown}</div>
+                            </div>
+                        )}
+
+                        {!isStarted ? (
+                            <div className="text-center space-y-6 max-w-sm">
+                                <div className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-blue-600 to-purple-600 mx-auto flex items-center justify-center shadow-2xl shadow-blue-900/50">
+                                    <Icon className="text-white" name="Fingerprint" size="{44}"/>
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-bold text-white mb-2">Canlı Zamanlama</h2>
+                                    <p className="text-gray-400 text-sm leading-relaxed">
+                                        Şarkı baştan çalacak. Sanatçı her satıra başladığı anda aşağıdaki büyük butona (veya <b>Boşluk</b> tuşuna) bas.
+                                    </p>
+                                </div>
+                                <div className="glass-panel p-3 rounded-2xl flex items-center justify-between text-xs">
+                                    <span className="text-gray-400">Gecikme Telafisi (ms):</span>
+                                    <div className="flex items-center gap-2">
+                                        <button onClick={() => setOffsetMs(o => o - 50)} className="px-2.5 py-1 bg-white/10 rounded-lg">-50</button>
+                                        <span className="font-mono text-blue-400 w-12 text-center">{offsetMs}ms</span>
+                                        <button onClick={() => setOffsetMs(o => o + 50)} className="px-2.5 py-1 bg-white/10 rounded-lg">+50</button>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={startProcess}
+                                    disabled={tempLyrics.length === 0}
+                                    className="w-full py-4 bg-white text-black font-extrabold text-base rounded-full hover:scale-[1.02] active:scale-95 transition-all shadow-[0_0_40px_rgba(255,255,255,0.25)] disabled:opacity-40"
+                                >
+                                    STÜDYOYU BAŞLAT
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-between py-4 max-w-lg">
+                                <div className="w-full space-y-3 flex-1 flex flex-col justify-center">
+                                    {activeIndex > 0 && (
+                                        <p className="text-center text-gray-500 text-xs truncate px-4">
+                                            ✓ {tempLyrics[activeIndex - 1]?.text}
+                                        </p>
+                                    )}
+                                    <div className="w-full min-h-[140px] flex flex-col items-center justify-center p-5 rounded-3xl bg-white/[0.04] border border-white/10 text-center">
+                                        <span className="text-blue-400 text-[10px] font-bold uppercase tracking-[0.25em] mb-2">
+                                            {activeIndex < tempLyrics.length ? 'SIRADAKİ SATIR' : 'TAMAMLANDI'}
+                                        </span>
+                                        <p className="text-white text-2xl md:text-3xl font-bold leading-snug break-words">
+                                            {activeIndex < tempLyrics.length ? tempLyrics[activeIndex].text : "Tüm satırlar eşlendi! Sağ üstten kaydet."}
+                                        </p>
+                                    </div>
+                                    {activeIndex + 1 < tempLyrics.length && (
+                                        <p className="text-center text-gray-500 text-sm truncate px-4">
+                                            Sonraki: {tempLyrics[activeIndex + 1]?.text}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="relative py-6 flex items-center justify-center">
+                                    <div key={rippleKey} className="absolute w-44 h-44 rounded-full border-2 border-blue-500/60 animate-ripple pointer-events-none"></div>
+                                    <button
+                                        onPointerDown={(e) => { e.preventDefault(); handleTap(); }}
+                                        disabled={activeIndex >= tempLyrics.length}
+                                        className="w-44 h-44 rounded-full bg-gradient-to-b from-[#1e1e24] to-[#0a0a0c] border border-white/15 active:border-blue-500 shadow-[0_0_60px_rgba(37,99,235,0.2)] flex flex-col items-center justify-center gap-2 transition-transform active:scale-90 touch-manipulation cursor-pointer z-20 disabled:opacity-30"
+                                    >
+                                        <div className="w-16 h-16 rounded-full bg-blue-600/20 flex items-center justify-center">
+                                            <div className="w-4 h-4 bg-blue-400 rounded-full shadow-[0_0_15px_#60a5fa]"></div>
+                                        </div>
+                                        <span className="text-gray-300 font-extrabold text-xs tracking-[0.2em]">VUR</span>
+                                    </button>
+                                </div>
+
+                                <div className="w-full flex items-center justify-between px-4">
+                                    <button onClick={handleUndo} disabled={activeIndex === 0} className="text-xs text-gray-400 hover:text-white disabled:opacity-30 flex items-center gap-1 py-2 px-3 rounded-xl bg-white/5">
+                                        <Icon name="RotateCcw" size="{14}"/> Geri Al
+                                    </button>
+                                    <span className="text-gray-400 font-mono text-xs">{activeIndex} / {tempLyrics.length}</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
         };
 
-        function App() {
-            const [projects, setProjects] = useState(() => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY_PROJECTS) || '[]'); } catch { return []; } });
-            const [settings, setSettings] = useState(() => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY_SETTINGS) || '{"apiKey":"", "modelName":"gemini-3-flash-preview"}'); } catch { return {apiKey:"", modelName:"gemini-3-flash-preview"}; } });
-            const saveProjects = (newProjects) => { setProjects(newProjects); localStorage.setItem(STORAGE_KEY_PROJECTS, JSON.stringify(newProjects)); };
-            const saveSettings = (newSettings) => { setSettings(newSettings); localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(newSettings)); };
-            
-            // Auto Save Hook
-            useEffect(() => { localStorage.setItem(STORAGE_KEY_PROJECTS, JSON.stringify(projects)); }, [projects]);
+        // --- PROJECTS LIST VIEW ---
+        const ProjectsView = ({ projects, setView, loadProject, deleteProject, effectiveApiKey, setError }) => {
+            const [search, setSearch] = useState("");
+            const filtered = useMemo(() =>
+                projects.filter(p =>
+                    p.name.toLowerCase().includes(search.toLowerCase()) ||
+                    (p.artist || "").toLowerCase().includes(search.toLowerCase())
+                ),
+            [projects, search]);
 
-            const [view, setView] = useState('projects'); 
+            return (
+                <div className="fixed inset-0 h-full flex flex-col bg-black z-10">
+                    <div className="pt-12 pb-4 px-6 flex justify-between items-center z-10">
+                        <div>
+                            <h1 className="text-3xl font-black text-white font-cinzel tracking-tight">LyricalAI</h1>
+                            <p className="text-gray-400 text-[11px] tracking-widest uppercase">Studio Pro v4.0</p>
+                        </div>
+                        <button onClick={() => setView('settings')} className="glass-button p-3 rounded-full text-gray-200 hover:text-white transition-all active:scale-95 relative">
+                            <Icon name="Settings" size="{20}"/>
+                            {!effectiveApiKey && <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-amber-500 rounded-full animate-ping"></span>}
+                        </button>
+                    </div>
+
+                    {projects.length > 0 && (
+                        <div className="px-6 pb-4">
+                            <div className="relative">
+                                <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" name="Search" size="{16}"/>
+                                <input
+                                    type="text"
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    placeholder="Şarkı veya sanatçı ara..."
+                                    className="w-full bg-[#141417] text-white text-sm pl-10 pr-4 py-3 rounded-2xl border border-white/5 focus:border-blue-500/50"
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex-1 overflow-y-auto px-6 pb-32 no-scrollbar">
+                        {filtered.length === 0 ? (
+                            <div className="h-72 flex flex-col items-center justify-center text-gray-500 mt-10 text-center">
+                                <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
+                                    <Icon className="text-gray-600" name="Disc3" size="{32}"/>
+                                </div>
+                                <p className="font-semibold text-gray-300">{projects.length === 0 ? "Henüz proje oluşturmadın" : "Eşleşen proje bulunamadı"}</p>
+                                <p className="text-xs text-gray-500 mt-1 max-w-xs">Yeni bir parça yükleyip yapay zeka ile saniyeler içinde senkronize sözler oluştur.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {filtered.map(p => {
+                                    const ArtComp = ALBUM_ARTS[(p.fileName?.length || 0) % ALBUM_ARTS.length];
+                                    return (
+                                        <div
+                                            key={p.id}
+                                            onClick={() => loadProject(p)}
+                                            className="glass-panel p-3.5 rounded-2xl flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer hover:border-white/20"
+                                        >
+                                            <div className="flex items-center gap-3.5 overflow-hidden">
+                                                <div className="w-13 h-13 w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-white/10 relative">
+                                                    <ArtComp/>
+                                                    <span className={`absolute bottom-1 right-1 w-2 h-2 rounded-full ${p.themeMode === 'nostalgic' ? 'bg-purple-400' : 'bg-blue-400'}`}></span>
+                                                </div>
+                                                <div className="overflow-hidden">
+                                                    <h3 className="font-bold text-white text-base truncate">{p.name}</h3>
+                                                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                                                        <span className="truncate">{p.artist || "Bilinmeyen Sanatçı"}</span>
+                                                        <span>•</span>
+                                                        <span className="shrink-0 text-gray-500">{p.lyrics?.length || 0} satır</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={(e) => deleteProject(e, p.id)}
+                                                className="p-2.5 text-gray-500 hover:text-red-400 rounded-xl hover:bg-red-500/10 transition-colors"
+                                            >
+                                                <Icon name="Trash2" size="{18}"/>
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="absolute bottom-8 left-0 right-0 px-6 z-20 flex justify-center">
+                        <button
+                            onClick={() => setView('createProject')}
+                            className="w-full max-w-md bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-4 rounded-full shadow-xl shadow-blue-950/60 flex items-center justify-center gap-2 font-bold transition-all active:scale-95 border border-white/15"
+                        >
+                            <Icon name="Plus" size="{20}"/> Yeni Proje Oluştur
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- CREATE PROJECT WIZARD ---
+        const CreateProjectWizard = ({ setView, createNewProject, analyzeFile, effectiveApiKey }) => {
+            const [step, setStep] = useState(1);
+            const [name, setName] = useState("");
+            const [artist, setArtist] = useState("");
+            const [audioFile, setAudioFile] = useState(null);
+            const [mode, setMode] = useState('classic');
+            const [font, setFont] = useState('default');
+            const [customBgFile, setCustomBgFile] = useState(null);
+            const [skipAI, setSkipAI] = useState(!effectiveApiKey);
+            const [manualText, setManualText] = useState("");
+
+            const handleFinish = async () => {
+                if (!name.trim() || !audioFile) return;
+                const projectId = Date.now().toString();
+                const audioUrl = URL.createObjectURL(audioFile);
+                const videoUrl = (mode === 'nostalgic' && customBgFile) ? URL.createObjectURL(customBgFile) : null;
+
+                // IndexedDB'ye kalıcı kaydet
+                await saveMediaBlob(`${projectId}_audio`, audioFile);
+                if (customBgFile) {
+                    await saveMediaBlob(`${projectId}_video`, customBgFile);
+                }
+
+                let initialLyrics = [];
+                if (skipAI && manualText.trim()) {
+                    const parsedLrc = parseLRC(manualText);
+                    if (parsedLrc.length > 0) {
+                        initialLyrics = parsedLrc;
+                    } else {
+                        initialLyrics = manualText
+                            .split(/\r?\n/)
+                            .map(s => s.trim())
+                            .filter(Boolean)
+                            .map((text, idx) => ({ text, ms: idx * 3000 }));
+                    }
+                }
+
+                const newP = {
+                    id: projectId,
+                    createdAt: new Date().toISOString(),
+                    name: name.trim(),
+                    artist: artist.trim() || "Bilinmiyor",
+                    themeMode: mode,
+                    fontId: font,
+                    fileName: audioFile.name,
+                    fileType: audioFile.type || 'audio/mpeg',
+                    bgVideoType: (mode === 'nostalgic' && customBgFile) ? 'custom' : 'none',
+                    lyrics: initialLyrics
+                };
+
+                createNewProject(newP, audioUrl, videoUrl);
+                if (!skipAI && effectiveApiKey) {
+                    await analyzeFile(audioFile, newP, mode);
+                }
+            };
+
+            return (
+                <div className="fixed inset-0 bg-black flex flex-col z-30 slide-in-bottom">
+                    <div className="pt-12 px-6 pb-3 flex items-center justify-between">
+                        <button onClick={() => step === 1 ? setView('projects') : setStep(1)} className="text-blue-400 flex items-center gap-1 font-semibold text-sm">
+                            <Icon name="ChevronLeft" size="{18}"/> {step === 1 ? "İptal" : "Geri"}
+                        </button>
+                        <div className="flex gap-1.5">
+                            <span className={`h-1.5 w-6 rounded-full transition-colors ${step >= 1 ? 'bg-blue-500' : 'bg-gray-800'}`}></span>
+                            <span className={`h-1.5 w-6 rounded-full transition-colors ${step >= 2 ? 'bg-blue-500' : 'bg-gray-800'}`}></span>
+                        </div>
+                    </div>
+
+                    <div className="px-6 pt-2 pb-5">
+                        <h2 className="text-2xl font-extrabold text-white">
+                            {step === 1 ? "Parça & Dosya Seçimi" : "Sahne & Mod Ayarları"}
+                        </h2>
+                        <p className="text-xs text-gray-400 mt-1">
+                            {step === 1 ? "Ses dosyasını yükle, bilgileri düzenle." : "Oynatıcı atmosferini ve yazı stilini seç."}
+                        </p>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto px-6 no-scrollbar pb-36">
+                        {step === 1 ? (
+                            <div className="space-y-5 fade-in">
+                                <div>
+                                    <label className="text-gray-400 text-[11px] font-bold uppercase tracking-wider ml-1 mb-2 block">Ses Dosyası *</label>
+                                    <button
+                                        onClick={() => document.getElementById('wiz-audio').click()}
+                                        className={`w-full p-7 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2.5 transition-all ${audioFile ? 'border-blue-500 bg-blue-500/10' : 'border-gray-800 bg-[#141417] hover:border-gray-700'}`}
+                                    >
+                                        <Icon "CheckCircle2" "UploadCloud"} "text-blue-400" "text-gray-500"} : ? className="{audioFile" name="{audioFile" size="{32}"/>
+                                        <span className="text-sm font-semibold text-gray-200 truncate max-w-[85%]">
+                                            {audioFile ? audioFile.name : "MP3, WAV, M4A veya OGG Seç"}
+                                        </span>
+                                        {audioFile && <span className="text-[11px] text-blue-400">{(audioFile.size / (1024 * 1024)).toFixed(1)} MB • Yerel hafızaya kaydedilecek</span>}
+                                    </button>
+                                    <input
+                                        type="file"
+                                        id="wiz-audio"
+                                        accept="audio/*"
+                                        className="hidden"
+                                        onChange={e => {
+                                            const f = e.target.files[0];
+                                            if (f) {
+                                                setAudioFile(f);
+                                                const cleanName = f.name.replace(/\.[^/.]+$/, "");
+                                                if (cleanName.includes(" - ")) {
+                                                    const [art, song] = cleanName.split(" - ");
+                                                    if (!artist) setArtist(art.trim());
+                                                    if (!name) setName(song.trim());
+                                                } else if (!name) {
+                                                    setName(cleanName);
+                                                }
+                                            }
+                                        }}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="text-gray-400 text-[11px] font-bold uppercase tracking-wider ml-1 mb-2 block">Şarkı Adı *</label>
+                                    <input
+                                        type="text"
+                                        value={name}
+                                        onChange={e => setName(e.target.value)}
+                                        className="w-full bg-[#141417] text-white p-4 rounded-2xl border border-white/10 focus:border-blue-500 text-base"
+                                        placeholder="Örn: Gece Yarısı"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="text-gray-400 text-[11px] font-bold uppercase tracking-wider ml-1 mb-2 block">Sanatçı</label>
+                                    <input
+                                        type="text"
+                                        value={artist}
+                                        onChange={e => setArtist(e.target.value)}
+                                        className="w-full bg-[#141417] text-white p-4 rounded-2xl border border-white/10 focus:border-blue-500 text-base"
+                                        placeholder="Boş bırakırsan AI tahmin eder"
+                                    />
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-6 fade-in">
+                                <div>
+                                    <label className="text-gray-400 text-[11px] font-bold uppercase tracking-wider ml-1 mb-2 block">Görünüm Modu</label>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <button
+                                            onClick={() => setMode('classic')}
+                                            className={`p-4 rounded-2xl border text-left transition-all ${mode === 'classic' ? 'bg-blue-600/20 border-blue-500' : 'bg-[#141417] border-white/5'}`}
+                                        >
+                                            <Icon 'classic' 'text-blue-400 'text-gray-500 : ? className="{mode" mb-2' mb-2'} name="AlignLeft" size="{22}"/>
+                                            <h4 className="font-bold text-sm text-white">Klasik Akış</h4>
+                                            <p className="text-[11px] text-gray-400 mt-0.5">Apple Music tarzı kayan sözler</p>
+                                        </button>
+                                        <button
+                                            onClick={() => setMode('nostalgic')}
+                                            className={`p-4 rounded-2xl border text-left transition-all ${mode === 'nostalgic' ? 'bg-purple-600/20 border-purple-500' : 'bg-[#141417] border-white/5'}`}
+                                        >
+                                            <Icon 'nostalgic' 'text-gray-500 'text-purple-400 : ? className="{mode" mb-2' mb-2'} name="Film" size="{22}"/>
+                                            <h4 className="font-bold text-sm text-white">Sinematik Video</h4>
+                                            <p className="text-[11px] text-gray-400 mt-0.5">Arka plan videosu + altyazı</p>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {mode === 'nostalgic' && (
+                                    <div className="fade-in">
+                                        <label className="text-gray-400 text-[11px] font-bold uppercase tracking-wider ml-1 mb-2 block">Arka Plan Videosu (İsteğe Bağlı)</label>
+                                        <button
+                                            onClick={() => document.getElementById('wiz-video-custom').click()}
+                                            className={`w-full p-5 rounded-2xl border-2 border-dashed flex items-center justify-center gap-3 transition-all ${customBgFile ? 'border-purple-500 bg-purple-500/10' : 'border-gray-800 bg-[#141417]'}`}
+                                        >
+                                            <Icon "CheckCircle2" "Video"} "text-gray-500"} "text-purple-400" : ? className="{customBgFile" name="{customBgFile" size="{22}"/>
+                                            <span className="text-xs font-medium text-gray-300 truncate max-w-[80%]">
+                                                {customBgFile ? customBgFile.name : "MP4 / WebM Video Seç"}
+                                            </span>
+                                        </button>
+                                        <input type="file" id="wiz-video-custom" accept="video/*" className="hidden" onChange={e => { const f = e.target.files[0]; if (f) setCustomBgFile(f); }} />
+                                    </div>
+                                )}
+
+                                <div>
+                                    <label className="text-gray-400 text-[11px] font-bold uppercase tracking-wider ml-1 mb-2 block">Tipografi</label>
+                                    <div className="grid grid-cols-1 gap-2">
+                                        {FONTS.map(f => (
+                                            <button
+                                                key={f.id}
+                                                onClick={() => setFont(f.id)}
+                                                className={`w-full p-3.5 rounded-xl border text-left flex justify-between items-center ${f.class} ${font === f.id ? 'bg-white/10 border-white/30 text-white' : 'bg-[#141417] border-transparent text-gray-400'}`}
+                                            >
+                                                <span className="text-base">{f.name}</span>
+                                                {font === f.id && <Icon className="text-blue-400" name="Check" size="{16}"/>}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="glass-panel p-4 rounded-2xl space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-sm font-bold text-white">Gemini AI Otomatik Çözümleme</p>
+                                            <p className="text-[11px] text-gray-400">{effectiveApiKey ? "Sesi dinleyip zaman kodlu sözleri çıkarır" : "API Key girilmediği için manuel mod aktif"}</p>
+                                        </div>
+                                        <button
+                                            disabled={!effectiveApiKey}
+                                            onClick={() => setSkipAI(!skipAI)}
+                                            className={`w-12 h-7 rounded-full transition-colors p-1 ${!skipAI && effectiveApiKey ? 'bg-blue-600' : 'bg-gray-700'}`}
+                                        >
+                                            <div className={`w-5 h-5 rounded-full bg-white transition-transform ${!skipAI && effectiveApiKey ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                                        </button>
+                                    </div>
+                                    {(skipAI || !effectiveApiKey) && (
+                                        <textarea
+                                            rows={4}
+                                            value={manualText}
+                                            onChange={e => setManualText(e.target.value)}
+                                            placeholder="Sözleri veya [00:12.50] formatında LRC metnini buraya yapıştırabilirsin..."
+                                            className="w-full bg-black/60 text-white text-xs p-3 rounded-xl border border-white/10 focus:border-blue-500"
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="absolute bottom-8 left-0 right-0 px-6 z-20">
+                        <button
+                            onClick={step === 1 ? () => setStep(2) : handleFinish}
+                            disabled={!name.trim() || !audioFile}
+                            className={`w-full py-4 rounded-full font-bold text-base transition-all ${(!name.trim() || !audioFile) ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 text-white shadow-xl shadow-blue-950'}`}
+                        >
+                            {step === 1 ? "Devam Et" : (!skipAI && effectiveApiKey ? "Oluştur & AI Analiz Et" : "Projeyi Oluştur")}
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- SETTINGS VIEW ---
+        const SettingsView = ({ setView, settings, saveSettings }) => {
+            const presets = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3-flash-preview"];
+            return (
+                <div className="fixed inset-0 bg-black flex flex-col z-50 slide-in-right w-full h-full">
+                    <div className="pt-12 px-6 pb-5 flex items-center bg-black/80 backdrop-blur-md z-20 border-b border-white/10">
+                        <button onClick={() => setView('projects')} className="text-blue-400 flex items-center gap-1 font-semibold text-sm z-30">
+                            <Icon name="ChevronLeft" size="{18}"/> Projeler
+                        </button>
+                        <h2 className="absolute left-0 right-0 text-center text-lg font-bold text-white pointer-events-none">Stüdyo Ayarları</h2>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                        <div className="glass-panel p-5 rounded-3xl space-y-5">
+                            <div className="flex items-center gap-2.5 text-white font-bold text-base">
+                                <Icon className="text-blue-400" name="Sparkles" size="{20}"/> Gemini Yapılandırması
+                            </div>
+
+                            <div>
+                                <label className="text-gray-400 text-[11px] font-bold ml-1 mb-2 block uppercase tracking-wider">Google AI Studio API Key</label>
+                                <input
+                                    type="password"
+                                    value={settings.apiKey}
+                                    onChange={(e) => saveSettings({ ...settings, apiKey: e.target.value.trim() })}
+                                    className="w-full bg-[#111114] text-white p-4 rounded-2xl border border-white/10 focus:border-blue-500 font-mono text-sm"
+                                    placeholder="AIzaSy..."
+                                />
+                            </div>
+
+                            <div>
+                                <label className="text-gray-400 text-[11px] font-bold ml-1 mb-2 block uppercase tracking-wider">Model Seçimi</label>
+                                <input
+                                    type="text"
+                                    value={settings.modelName}
+                                    onChange={(e) => saveSettings({ ...settings, modelName: e.target.value.trim() })}
+                                    className="w-full bg-[#111114] text-white p-3.5 rounded-2xl border border-white/10 focus:border-blue-500 font-mono text-sm mb-2.5"
+                                />
+                                <div className="flex flex-wrap gap-2">
+                                    {presets.map(m => (
+                                        <button
+                                            key={m}
+                                            onClick={() => saveSettings({ ...settings, modelName: m })}
+                                            className={`text-[11px] px-3 py-1.5 rounded-full font-mono border transition-colors ${settings.modelName === m ? 'bg-blue-600/20 border-blue-500 text-blue-300' : 'bg-white/5 border-white/10 text-gray-400'}`}
+                                        >
+                                            {m}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="glass-panel p-5 rounded-3xl space-y-2 text-xs text-gray-400">
+                            <p className="text-white font-bold text-sm">Klavye Kısayolları (Masaüstü)</p>
+                            <p>• <b>Space:</b> Oynat / Duraklat</p>
+                            <p>• <b>Sol / Sağ Ok:</b> 5 saniye geri / ileri sar</p>
+                            <p>• <b>Ritim Stüdyosu:</b> Space tuşu ile canlı satır işaretleme</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- EDITOR DRAWER ---
+        const EditorDrawer = ({
+            isOpen, onClose, lyrics, setLyrics, currentProject,
+            updateProjectAndSave, startManualSync, onReanalyze, hasApiKey
+        }) => {
+            const [localTitle, setLocalTitle] = useState("");
+            const [localArtist, setLocalArtist] = useState("");
+            const [localFont, setLocalFont] = useState("default");
+            const [localMode, setLocalMode] = useState("classic");
+            const [showLrcModal, setShowLrcModal] = useState(false);
+            const [lrcInput, setLrcInput] = useState("");
+
+            useEffect(() => {
+                if (currentProject && isOpen) {
+                    setLocalTitle(currentProject.name || "");
+                    setLocalArtist(currentProject.artist || "Bilinmiyor");
+                    setLocalFont(currentProject.fontId || "default");
+                    setLocalMode(currentProject.themeMode || "classic");
+                }
+            }, [currentProject, isOpen]);
+
+            const handleSaveAndClose = () => {
+                const sorted = [...lyrics].sort((a, b) => a.ms - b.ms);
+                setLyrics(sorted);
+                updateProjectAndSave({
+                    name: localTitle.trim() || "İsimsiz Parça",
+                    artist: localArtist.trim() || "Bilinmiyor",
+                    fontId: localFont,
+                    themeMode: localMode,
+                    lyrics: sorted
+                });
+                onClose();
+            };
+
+            const handleDownloadLRC = () => {
+                const content = exportToLRC(lyrics, localTitle, localArtist);
+                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${localTitle || 'lyrics'}.lrc`;
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+
+            const handleImportLRC = () => {
+                const parsed = parseLRC(lrcInput);
+                if (parsed.length > 0) {
+                    setLyrics(parsed);
+                    setShowLrcModal(false);
+                    setLrcInput("");
+                }
+            };
+
+            const shiftAllTimestamps = (deltaMs) => {
+                setLyrics(prev => prev.map(l => ({ ...l, ms: Math.max(0, l.ms + deltaMs) })));
+            };
+
+            return (
+                <>
+                    {isOpen && <div onClick={handleSaveAndClose} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[55] fade-in"></div>}
+                    <div className={`fixed inset-y-0 left-0 w-full max-w-md bg-[#121215] border-r border-white/10 z-[60] flex flex-col transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                        <div className="pt-11 px-5 pb-4 border-b border-white/10 flex justify-between items-center bg-[#121215] shrink-0">
+                            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                                <Icon className="text-blue-400" name="SlidersHorizontal" size="{18}"/> Stüdyo Editörü
+                            </h2>
+                            <button onClick={handleSaveAndClose} className="bg-blue-600 hover:bg-blue-500 px-4 py-1.5 rounded-full text-white text-xs font-bold flex items-center gap-1">
+                                <Icon name="Check" size="{16}"/> Bitti
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-28 no-scrollbar">
+                            <div className="bg-black/50 p-4 rounded-2xl border border-white/5 space-y-3">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="text-[10px] text-gray-500 font-bold uppercase">Şarkı Adı</label>
+                                        <input type="text" value={localTitle} onChange={e => setLocalTitle(e.target.value)} className="w-full bg-transparent border-b border-gray-700 focus:border-blue-500 text-white text-sm py-1"/>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] text-gray-500 font-bold uppercase">Sanatçı</label>
+                                        <input type="text" value={localArtist} onChange={e => setLocalArtist(e.target.value)} className="w-full bg-transparent border-b border-gray-700 focus:border-blue-500 text-white text-sm py-1"/>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 pt-1">
+                                    <select value={localMode} onChange={e => setLocalMode(e.target.value)} className="bg-[#1c1c21] text-white text-xs p-2.5 rounded-xl border border-white/10">
+                                        <option value="classic">Mod: Klasik Akış</option>
+                                        <option value="nostalgic">Mod: Sinematik Video</option>
+                                    </select>
+                                    <select value={localFont} onChange={e => setLocalFont(e.target.value)} className="bg-[#1c1c21] text-white text-xs p-2.5 rounded-xl border border-white/10">
+                                        {FONTS.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                                <button onClick={startManualSync} className="bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 py-3 px-3 rounded-xl font-bold text-xs border border-blue-500/30 flex items-center justify-center gap-1.5">
+                                    <Icon name="Fingerprint" size="{16}"/> Ritim Tut (Tap)
+                                </button>
+                                {hasApiKey && (
+                                    <button onClick={() => { handleSaveAndClose(); onReanalyze(); }} className="bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 py-3 px-3 rounded-xl font-bold text-xs border border-purple-500/30 flex items-center justify-center gap-1.5">
+                                        <Icon name="Sparkles" size="{16}"/> AI Yeniden Çöz
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="flex items-center justify-between bg-white/[0.03] px-3 py-2 rounded-xl border border-white/5 text-[11px]">
+                                <span className="text-gray-400">Tüm Zamanı Kaydır:</span>
+                                <div className="flex gap-1.5">
+                                    <button onClick={() => shiftAllTimestamps(-250)} className="px-2 py-1 bg-white/10 rounded-lg hover:bg-white/20">-0.25s</button>
+                                    <button onClick={() => shiftAllTimestamps(250)} className="px-2 py-1 bg-white/10 rounded-lg hover:bg-white/20">+0.25s</button>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-between items-center pt-2 px-1">
+                                <div className="flex gap-2">
+                                    <button onClick={() => setShowLrcModal(!showLrcModal)} className="text-[11px] bg-white/10 text-gray-200 px-2.5 py-1 rounded-lg hover:bg-white/15">LRC Yapıştır</button>
+                                    <button onClick={handleDownloadLRC} className="text-[11px] bg-white/10 text-gray-200 px-2.5 py-1 rounded-lg hover:bg-white/15">LRC İndir</button>
+                                </div>
+                                <button
+                                    onClick={() => setLyrics(prev => [...prev, { text: "Yeni satır...", ms: (prev[prev.length - 1]?.ms || 0) + 2500 }])}
+                                    className="text-xs bg-blue-500/20 text-blue-400 font-bold px-3 py-1 rounded-full"
+                                >
+                                    + Satır
+                                </button>
+                            </div>
+
+                            {showLrcModal && (
+                                <div className="bg-black p-3 rounded-xl border border-blue-500/40 space-y-2">
+                                    <textarea
+                                        rows={4}
+                                        value={lrcInput}
+                                        onChange={e => setLrcInput(e.target.value)}
+                                        placeholder="[00:15.20] Örnek şarkı sözü satırı..."
+                                        className="w-full bg-[#18181b] text-white text-xs p-2.5 rounded-lg border border-white/10"
+                                    />
+                                    <button onClick={handleImportLRC} className="w-full py-2 bg-blue-600 text-white text-xs font-bold rounded-lg">LRC Uygula</button>
+                                </div>
+                            )}
+
+                            <div className="space-y-2">
+                                {lyrics.map((line, idx) => (
+                                    <div key={idx} className="flex gap-2 items-center bg-black/70 p-2.5 rounded-xl border border-white/5 focus-within:border-blue-500/40">
+                                        <input
+                                            type="number"
+                                            value={line.ms}
+                                            onChange={(e) => {
+                                                const val = parseInt(e.target.value, 10) || 0;
+                                                setLyrics(prev => prev.map((item, i) => i === idx ? { ...item, ms: val } : item));
+                                            }}
+                                            className="w-16 bg-white/5 rounded-lg py-1 px-1.5 text-blue-400 text-xs font-mono text-right shrink-0"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={line.text}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                setLyrics(prev => prev.map((item, i) => i === idx ? { ...item, text: val } : item));
+                                            }}
+                                            className="flex-1 bg-transparent text-white text-sm px-1"
+                                        />
+                                        <button
+                                            onClick={() => setLyrics(prev => prev.filter((_, i) => i !== idx))}
+                                            className="text-gray-600 hover:text-red-400 p-1.5 shrink-0"
+                                        >
+                                            <Icon name="Trash2" size="{15}"/>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </>
+            );
+        };
+
+        // --- MAIN APPLICATION ---
+        function App() {
+            const [projects, setProjects] = useState(() => {
+                try { return JSON.parse(localStorage.getItem(STORAGE_KEY_PROJECTS) || '[]'); } catch { return []; }
+            });
+            const [settings, setSettings] = useState(() => {
+                try { return JSON.parse(localStorage.getItem(STORAGE_KEY_SETTINGS) || '{"apiKey":"", "modelName":"gemini-2.5-flash"}'); }
+                catch { return { apiKey: "", modelName: "gemini-2.5-flash" }; }
+            });
+
+            const saveSettings = (newSettings) => {
+                setSettings(newSettings);
+                localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(newSettings));
+            };
+
+            useEffect(() => {
+                localStorage.setItem(STORAGE_KEY_PROJECTS, JSON.stringify(projects));
+            }, [projects]);
+
+            const [view, setView] = useState('projects');
             const [currentProject, setCurrentProject] = useState(null);
             const [manualSyncMode, setManualSyncMode] = useState(false);
             const [fileBlob, setFileBlob] = useState(null);
-            const [videoBlob, setVideoBlob] = useState(null); 
+            const [videoBlob, setVideoBlob] = useState(null);
             const [isPlaying, setIsPlaying] = useState(false);
             const [currentTime, setCurrentTime] = useState(0);
             const [duration, setDuration] = useState(0);
@@ -168,151 +1044,647 @@
             const [isLeftMenuOpen, setIsLeftMenuOpen] = useState(false);
             const [activeIndex, setActiveIndex] = useState(-1);
             const [syncState, setSyncState] = useState({ visible: false, type: 'center' });
+            const [bassPulse, setBassPulse] = useState(0);
+
             const userHasScrolled = useRef(false);
             const isAutoScrolling = useRef(false);
             const audioRef = useRef(null);
             const videoRef = useRef(null);
             const lyricsContainerRef = useRef(null);
+            const lineRefs = useRef([]);
             const rafRef = useRef(null);
             const fileInputRef = useRef(null);
             const customVideoInputRef = useRef(null);
+            const audioCtxRef = useRef(null);
+            const analyserRef = useRef(null);
+
             const effectiveApiKey = settings.apiKey;
             const currentFont = currentProject ? FONTS.find(f => f.id === currentProject.fontId) || FONTS[0] : FONTS[0];
-            const formatTime = (seconds) => { if (!seconds || isNaN(seconds)) return "0:00"; const mins = Math.floor(seconds / 60); const secs = Math.floor(seconds % 60); return `${mins}:${secs < 10 ? '0' : ''}${secs}`; };
-            const sortLyricsByTime = (lyricsArray) => [...lyricsArray].sort((a, b) => a.ms - b.ms);
-            
-            // --- UPDATED LOADING LOGIC (Fixing Race Condition) ---
-            const loadProject = (project, initialAudioUrl = null, initialVideoUrl = null) => { 
-                setCurrentProject(project); 
-                setLyrics(project.lyrics || []); 
-                // CRITICAL FIX: Use the passed URL if available, else null (wait for reupload)
-                setFileBlob(initialAudioUrl); 
-                setVideoBlob(initialVideoUrl); 
-                setIsPlaying(false); 
-                setCurrentTime(0); 
-                setDuration(0); 
-                setActiveIndex(-1); 
-                setError(""); 
-                setView('player'); 
+
+            const formatTime = (seconds) => {
+                if (!seconds || !isFinite(seconds) || seconds < 0) return "0:00";
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
             };
 
-            const createNewProject = (newP, audioUrl, videoUrl) => { 
-                setProjects(prev => [newP, ...prev]); 
-                // Pass URLs directly to loadProject
-                loadProject(newP, audioUrl, videoUrl); 
-            };
-            
-            const deleteProject = (e, projectId) => { e.stopPropagation(); if(confirm("Bu projeyi silmek istediğine emin misin?")) setProjects(prev => prev.filter(p => p.id !== projectId)); };
-            const updateProjectAndSave = (updates) => { if (!currentProject) return; const updatedProject = { ...currentProject, ...updates }; if (updates.lyrics) updatedProject.lyrics = sortLyricsByTime(updates.lyrics); setCurrentProject(updatedProject); setProjects(prevProjects => prevProjects.map(p => p.id === updatedProject.id ? updatedProject : p)); };
-            const handleBackToMenu = () => { if (currentProject) { updateProjectAndSave({ lyrics: lyrics }); } if(isPlaying && audioRef.current) { audioRef.current.pause(); setIsPlaying(false); } setView('projects'); };
+            const sortLyricsByTime = (arr) => [...arr].sort((a, b) => a.ms - b.ms);
 
-            // ... (Effects for audio loop, sync logic, etc. - kept same as v3.8)
-            useEffect(() => { const loop = () => { if (audioRef.current && !audioRef.current.paused) { setCurrentTime(audioRef.current.currentTime * 1000); rafRef.current = requestAnimationFrame(loop); }}; if (isPlaying) rafRef.current = requestAnimationFrame(loop); else if (rafRef.current) cancelAnimationFrame(rafRef.current); return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }; }, [isPlaying]);
-            useEffect(() => { const audio = audioRef.current; if (!audio) return; const onMeta = () => setDuration(audio.duration); const onEnded = () => setIsPlaying(false); const onTime = () => { if (!isPlaying) setCurrentTime(audio.currentTime * 1000); }; audio.addEventListener('loadedmetadata', onMeta); audio.addEventListener('ended', onEnded); audio.addEventListener('timeupdate', onTime); return () => { audio.removeEventListener('loadedmetadata', onMeta); audio.removeEventListener('ended', onEnded); audio.removeEventListener('timeupdate', onTime); }; }, [isPlaying, fileBlob]);
-            useEffect(() => { const video = videoRef.current; if (video && currentProject?.themeMode === 'nostalgic') { if (isPlaying) video.play().catch(e=>{}); else video.pause(); } }, [isPlaying, currentProject, videoBlob]);
-            useEffect(() => { if (lyrics.length === 0) return; const idx = lyrics.findIndex((line, index) => { const nextLine = lyrics[index + 1]; return currentTime >= (line.ms - ANIMATION_OFFSET_MS) && (!nextLine || currentTime < (nextLine.ms - ANIMATION_OFFSET_MS)); }); if (idx !== activeIndex) setActiveIndex(idx); }, [currentTime, lyrics]);
-             const handleScroll = useCallback(() => { if (currentProject?.themeMode !== 'classic' || !isPlaying || isAutoScrolling.current || !lyricsContainerRef.current || activeIndex === -1) return; userHasScrolled.current = true; const container = lyricsContainerRef.current; const activeElement = container.querySelector('.lyrics-wrapper')?.children[activeIndex]; if (activeElement) { const rect = activeElement.getBoundingClientRect(); const cRect = container.getBoundingClientRect(); let type = 'center'; if (rect.bottom < cRect.top + 50) type = 'up'; else if (rect.top > cRect.bottom - 50) type = 'down'; setSyncState({ visible: true, type }); } }, [activeIndex, isPlaying, currentProject]);
-            useEffect(() => { if (view !== 'player' || userHasScrolled.current || !isPlaying || activeIndex === -1 || currentProject?.themeMode !== 'classic' || !lyricsContainerRef.current) return; const container = lyricsContainerRef.current; const activeElement = container.querySelector('.lyrics-wrapper')?.children[activeIndex]; if (activeElement) { isAutoScrolling.current = true; container.scrollTo({ top: activeElement.offsetTop - (container.clientHeight / 2) + (activeElement.clientHeight / 2), behavior: 'smooth' }); const t = setTimeout(() => { isAutoScrolling.current = false; }, 600); return () => clearTimeout(t); } }, [activeIndex, view, isPlaying, currentProject]);
-            const togglePlay = () => { if (audioRef.current && fileBlob) { isPlaying ? audioRef.current.pause() : audioRef.current.play().catch(e => setError("Dosya oynatılamadı.")); setIsPlaying(!isPlaying); } };
-            const seekAudio = (ms) => { if (audioRef.current && fileBlob) { audioRef.current.currentTime = ms / 1000; if(videoRef.current) videoRef.current.currentTime = ms / 1000; if (!isPlaying) { audioRef.current.play(); setIsPlaying(true); } userHasScrolled.current = false; setSyncState({ ...syncState, visible: false }); } };
-            const handleReupload = (e) => { const file = e.target.files[0]; if (!file) return; setFileBlob(URL.createObjectURL(file)); setError(""); };
-            const handleCustomVideoReupload = (e) => { const file = e.target.files[0]; if (!file) return; setVideoBlob(URL.createObjectURL(file)); updateProjectAndSave({bgVideoType: 'custom'}); }
-            
-            const analyzeFile = async (file, projectToUpdate, modeOverride = null) => {
-                setIsLoading(true); setLoadingStep("Medya işleniyor...");
-                const activeMode = modeOverride || projectToUpdate.themeMode;
+            // Web Audio API Visualizer Bağlantısı
+            const setupAudioAnalyser = useCallback(() => {
+                if (!audioRef.current || audioCtxRef.current) return;
                 try {
-                    const base64 = await new Promise((r) => { const reader = new FileReader(); reader.onloadend = () => r(reader.result.split(',')[1]); reader.readAsDataURL(file); });
-                    setLoadingStep("Gemini 3 sözleri çıkarıyor...");
-                    let prompt = activeMode === 'nostalgic' 
-                        ? `Listen to the audio. Transcribe the lyrics. CRITICAL FORMATTING RULES: 1. Group the text into logical sentences. 2. Do NOT chop text into short karaoke lines. 3. Max 2 lines of text per timestamp. 4. Provide the EXACT start timestamp (in ms). 5. JSON Array format: [{"text": "First full sentence here.", "ms": 1000}]. No markdown.`
-                        : `Listen to the audio. Transcribe the lyrics and provide the EXACT start timestamp (in milliseconds) for each line. FORMATTING RULES: 1. Group text into lines of 5-6 words max. 2. Every line MUST start with a Capital letter. 3. Return ONLY a valid JSON array of objects. 4. Object format: { "text": "Line content here", "ms": 1234 } 5. Do NOT include markdown blocks.`;
-                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${settings.modelName}:generateContent?key=${effectiveApiKey}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }, { inlineData: { data: base64, mimeType: file.type } }] }] }) });
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    const ctx = new AudioContext();
+                    const analyser = ctx.createAnalyser();
+                    analyser.fftSize = 64;
+                    const source = ctx.createMediaElementSource(audioRef.current);
+                    source.connect(analyser);
+                    analyser.connect(ctx.destination);
+                    audioCtxRef.current = ctx;
+                    analyserRef.current = analyser;
+                } catch (e) {}
+            }, []);
+
+            // Projeyi Yükle (Önce parametre URL, yoksa IndexedDB'den çek)
+            const loadProject = async (project, initialAudioUrl = null, initialVideoUrl = null) => {
+                setCurrentProject(project);
+                setLyrics(project.lyrics || []);
+                setIsPlaying(false);
+                setCurrentTime(0);
+                setDuration(0);
+                setActiveIndex(-1);
+                setError("");
+                userHasScrolled.current = false;
+                setSyncState({ visible: false, type: 'center' });
+
+                let resolvedAudio = initialAudioUrl;
+                let resolvedVideo = initialVideoUrl;
+
+                if (!resolvedAudio) {
+                    const storedAudio = await getMediaBlob(`${project.id}_audio`);
+                    if (storedAudio) resolvedAudio = URL.createObjectURL(storedAudio);
+                }
+                if (!resolvedVideo && project.themeMode === 'nostalgic') {
+                    const storedVideo = await getMediaBlob(`${project.id}_video`);
+                    if (storedVideo) resolvedVideo = URL.createObjectURL(storedVideo);
+                }
+
+                setFileBlob(resolvedAudio);
+                setVideoBlob(resolvedVideo);
+                setView('player');
+            };
+
+            const createNewProject = (newP, audioUrl, videoUrl) => {
+                setProjects(prev => [newP, ...prev]);
+                loadProject(newP, audioUrl, videoUrl);
+            };
+
+            const deleteProject = async (e, projectId) => {
+                e.stopPropagation();
+                if (confirm("Bu projeyi ve yerel medya dosyalarını silmek istediğine emin misin?")) {
+                    await deleteProjectMedia(projectId);
+                    setProjects(prev => prev.filter(p => p.id !== projectId));
+                }
+            };
+
+            const updateProjectAndSave = (updates) => {
+                if (!currentProject) return;
+                const updated = { ...currentProject, ...updates };
+                if (updates.lyrics) updated.lyrics = sortLyricsByTime(updates.lyrics);
+                setCurrentProject(updated);
+                setProjects(prev => prev.map(p => p.id === updated.id ? updated : p));
+            };
+
+            const handleBackToMenu = () => {
+                if (currentProject) updateProjectAndSave({ lyrics });
+                if (audioRef.current) {
+                    audioRef.current.pause();
+                    setIsPlaying(false);
+                }
+                setView('projects');
+            };
+
+            // 60fps Zaman ve Ses Frekans Döngüsü
+            useEffect(() => {
+                const freqData = new Uint8Array(32);
+                const loop = () => {
+                    if (audioRef.current && !audioRef.current.paused) {
+                        setCurrentTime(audioRef.current.currentTime * 1000);
+                        if (analyserRef.current) {
+                            analyserRef.current.getByteFrequencyData(freqData);
+                            const bass = (freqData[0] + freqData[1] + freqData[2]) / (3 * 255);
+                            setBassPulse(bass);
+                        }
+                        rafRef.current = requestAnimationFrame(loop);
+                    }
+                };
+                if (isPlaying) {
+                    rafRef.current = requestAnimationFrame(loop);
+                } else {
+                    setBassPulse(0);
+                    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+                }
+                return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+            }, [isPlaying]);
+
+            // Audio Metadata & Event Listeners
+            useEffect(() => {
+                const audio = audioRef.current;
+                if (!audio) return;
+                const onMeta = () => setDuration(audio.duration || 0);
+                const onEnded = () => setIsPlaying(false);
+                const onTime = () => { if (!isPlaying) setCurrentTime(audio.currentTime * 1000); };
+                audio.addEventListener('loadedmetadata', onMeta);
+                audio.addEventListener('ended', onEnded);
+                audio.addEventListener('timeupdate', onTime);
+                return () => {
+                    audio.removeEventListener('loadedmetadata', onMeta);
+                    audio.removeEventListener('ended', onEnded);
+                    audio.removeEventListener('timeupdate', onTime);
+                };
+            }, [isPlaying, fileBlob]);
+
+            // Video Play/Pause Sync
+            useEffect(() => {
+                const video = videoRef.current;
+                if (video && currentProject?.themeMode === 'nostalgic' && videoBlob) {
+                    if (isPlaying) video.play().catch(() => {});
+                    else video.pause();
+                }
+            }, [isPlaying, currentProject, videoBlob]);
+
+            // Aktif Satır Hesaplama
+            useEffect(() => {
+                if (lyrics.length === 0) {
+                    setActiveIndex(-1);
+                    return;
+                }
+                let found = -1;
+                for (let i = 0; i < lyrics.length; i++) {
+                    const start = lyrics[i].ms - ANIMATION_OFFSET_MS;
+                    const nextStart = lyrics[i + 1] ? lyrics[i + 1].ms - ANIMATION_OFFSET_MS : Infinity;
+                    if (currentTime >= start && currentTime < nextStart) {
+                        found = i;
+                        break;
+                    }
+                }
+                if (found !== activeIndex) setActiveIndex(found);
+            }, [currentTime, lyrics, activeIndex]);
+
+            // Kullanıcı Kaydırma Kontrolü
+            const handleScroll = useCallback(() => {
+                if (currentProject?.themeMode !== 'classic' || !isPlaying || isAutoScrolling.current || !lyricsContainerRef.current || activeIndex === -1) return;
+                userHasScrolled.current = true;
+                const container = lyricsContainerRef.current;
+                const activeEl = lineRefs.current[activeIndex];
+                if (activeEl) {
+                    const rect = activeEl.getBoundingClientRect();
+                    const cRect = container.getBoundingClientRect();
+                    let type = 'center';
+                    if (rect.bottom < cRect.top + 60) type = 'up';
+                    else if (rect.top > cRect.bottom - 60) type = 'down';
+                    setSyncState({ visible: true, type });
+                }
+            }, [activeIndex, isPlaying, currentProject]);
+
+            // Otomatik Yumuşak Kaydırma
+            useEffect(() => {
+                if (view !== 'player' || userHasScrolled.current || !isPlaying || activeIndex === -1 || currentProject?.themeMode !== 'classic' || !lyricsContainerRef.current) return;
+                const container = lyricsContainerRef.current;
+                const activeEl = lineRefs.current[activeIndex];
+                if (activeEl) {
+                    isAutoScrolling.current = true;
+                    const targetTop = activeEl.offsetTop - (container.clientHeight / 2) + (activeEl.clientHeight / 2);
+                    container.scrollTo({ top: targetTop, behavior: 'smooth' });
+                    const t = setTimeout(() => { isAutoScrolling.current = false; }, 550);
+                    return () => clearTimeout(t);
+                }
+            }, [activeIndex, view, isPlaying, currentProject]);
+
+            const togglePlay = useCallback(() => {
+                if (!audioRef.current || !fileBlob) return;
+                setupAudioAnalyser();
+                if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
+                    audioCtxRef.current.resume();
+                }
+                if (isPlaying) {
+                    audioRef.current.pause();
+                    setIsPlaying(false);
+                } else {
+                    audioRef.current.play()
+                        .then(() => setIsPlaying(true))
+                        .catch(() => setError("Ses oynatılamadı. Lütfen dosyayı tekrar seç."));
+                }
+            }, [fileBlob, isPlaying, setupAudioAnalyser]);
+
+            const seekAudio = useCallback((ms) => {
+                if (!audioRef.current || !fileBlob) return;
+                const maxMs = (duration || 0) * 1000;
+                const clampedMs = Math.max(0, maxMs > 0 ? Math.min(ms, maxMs) : ms);
+                audioRef.current.currentTime = clampedMs / 1000;
+                setCurrentTime(clampedMs);
+                if (videoRef.current && videoRef.current.duration) {
+                    videoRef.current.currentTime = (clampedMs / 1000) % videoRef.current.duration;
+                }
+                userHasScrolled.current = false;
+                setSyncState(prev => ({ ...prev, visible: false }));
+            }, [fileBlob, duration]);
+
+            // Klavye Kısayolları
+            useEffect(() => {
+                const onKey = (e) => {
+                    if (view !== 'player' || isLeftMenuOpen || manualSyncMode) return;
+                    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+                    if (e.code === 'Space') {
+                        e.preventDefault();
+                        togglePlay();
+                    } else if (e.code === 'ArrowLeft') {
+                        e.preventDefault();
+                        seekAudio(currentTime - 5000);
+                    } else if (e.code === 'ArrowRight') {
+                        e.preventDefault();
+                        seekAudio(currentTime + 5000);
+                    }
+                };
+                window.addEventListener('keydown', onKey);
+                return () => window.removeEventListener('keydown', onKey);
+            }, [view, isLeftMenuOpen, manualSyncMode, togglePlay, seekAudio, currentTime]);
+
+            const handleReupload = async (e) => {
+                const file = e.target.files[0];
+                if (!file || !currentProject) return;
+                await saveMediaBlob(`${currentProject.id}_audio`, file);
+                setFileBlob(URL.createObjectURL(file));
+                setError("");
+            };
+
+            const handleCustomVideoReupload = async (e) => {
+                const file = e.target.files[0];
+                if (!file || !currentProject) return;
+                await saveMediaBlob(`${currentProject.id}_video`, file);
+                setVideoBlob(URL.createObjectURL(file));
+                updateProjectAndSave({ bgVideoType: 'custom' });
+            };
+
+            // --- GEMINI AI AUDIO TRANSCRIPTION ---
+            const analyzeFile = async (file, projectToUpdate, modeOverride = null) => {
+                if (!effectiveApiKey) {
+                    setError("Analiz için Ayarlar'dan Gemini API Key girmelisin.");
+                    return;
+                }
+                if (file.size > 19 * 1024 * 1024) {
+                    setError("Dosya boyutu 19MB'dan büyük. Tarayıcı üzerinden doğrudan analiz için daha sıkıştırılmış bir MP3 kullan.");
+                    return;
+                }
+
+                setIsLoading(true);
+                setLoadingStep("Ses dosyası hazırlanıyor...");
+                const activeMode = modeOverride || projectToUpdate.themeMode;
+
+                try {
+                    const base64 = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                        reader.onerror = () => reject(new Error("Dosya okunamadı."));
+                        reader.readAsDataURL(file);
+                    });
+
+                    setLoadingStep(`${settings.modelName} sözleri ve zaman damgalarını çıkarıyor...`);
+
+                    const styleInstruction = activeMode === 'nostalgic'
+                        ? "Group lyrics into natural poetic sentences (max 10-12 words per entry) suitable for cinema subtitles."
+                        : "Split lyrics into rhythmic karaoke lines (4-7 words per line). Start every line with a capital letter.";
+
+                    const prompt = `Listen carefully to this audio track and transcribe all vocal lyrics with exact start timestamps in milliseconds (ms).
+${styleInstruction}
+Also detect the likely artist name if recognizable, otherwise return "Bilinmiyor".
+Return ONLY valid JSON matching this exact schema:
+{
+  "artist": "Artist Name",
+  "lyrics": [
+    { "text": "First lyric line", "ms": 12400 }
+  ]
+}`;
+
+                    const res = await fetch(
+                        `https://generativelanguage.googleapis.com/v1beta/models/${settings.modelName}:generateContent?key=${effectiveApiKey}`,
+                        {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                contents: [{
+                                    parts: [
+                                        { text: prompt },
+                                        { inlineData: { data: base64, mimeType: file.type || "audio/mp3" } }
+                                    ]
+                                }],
+                                generationConfig: {
+                                    responseMimeType: "application/json",
+                                    temperature: 0.2
+                                }
+                            })
+                        }
+                    );
+
                     const data = await res.json();
                     if (data.error) throw new Error(data.error.message);
-                    const result = JSON.parse(data.candidates[0].content.parts[0].text);
-                    if (!Array.isArray(result)) throw new Error("Format bozuk.");
-                    
-                    const sorted = sortLyricsByTime(result);
-                    setLyrics(sorted); 
-                    setProjects(prev => prev.map(p => p.id === projectToUpdate.id ? { ...p, lyrics: sorted } : p));
-                    setCurrentProject(prev => ({ ...prev, lyrics: sorted }));
 
-                } catch (err) { setError("Analiz Hatası: " + err.message); } finally { setIsLoading(false); }
+                    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                    const cleanedJson = rawText.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+                    const parsed = JSON.parse(cleanedJson);
+
+                    const rawLyrics = Array.isArray(parsed) ? parsed : (parsed.lyrics || []);
+                    if (!Array.isArray(rawLyrics) || rawLyrics.length === 0) {
+                        throw new Error("Ses içinde çözümlenebilir vokal söz bulunamadı.");
+                    }
+
+                    const sanitized = sortLyricsByTime(
+                        rawLyrics
+                            .filter(item => item && typeof item.text === 'string' && item.text.trim())
+                            .map(item => ({
+                                text: item.text.trim(),
+                                ms: Math.max(0, Number(item.ms) || 0)
+                            }))
+                    );
+
+                    const detectedArtist = (!Array.isArray(parsed) && parsed.artist && parsed.artist !== "Bilinmiyor")
+                        ? parsed.artist
+                        : projectToUpdate.artist;
+
+                    setLyrics(sanitized);
+                    setProjects(prev => prev.map(p =>
+                        p.id === projectToUpdate.id ? { ...p, lyrics: sanitized, artist: detectedArtist } : p
+                    ));
+                    setCurrentProject(prev => prev ? { ...prev, lyrics: sanitized, artist: detectedArtist } : prev);
+
+                } catch (err) {
+                    setError("AI Analiz Hatası: " + err.message);
+                } finally {
+                    setIsLoading(false);
+                }
             };
-            const getVideoSrc = () => { if (!currentProject) return null; if (currentProject.bgVideoType === 'custom') return videoBlob; return null; };
-            const renderAlbumArt = () => { if (!currentProject) return null; const ArtComponent = ALBUM_ARTS[currentProject.fileName.length % ALBUM_ARTS.length]; return <ArtComponent />; }
-            const onSyncClick = useCallback((e) => {
-                if (activeIndex !== -1 && lyricsContainerRef.current) {
-                    isAutoScrolling.current = true; userHasScrolled.current = false; setSyncState(prev => ({ ...prev, visible: false }));
-                    const container = lyricsContainerRef.current; const activeEl = container.querySelector('.lyrics-wrapper')?.children[activeIndex];
-                    if (activeEl) { const topPos = activeEl.offsetTop - (container.clientHeight / 2) + (activeEl.clientHeight / 2); container.scrollTo({ top: topPos, behavior: 'smooth' }); }
-                    setTimeout(() => { isAutoScrolling.current = false; }, 800);
+
+            const handleReanalyzeFromEditor = async () => {
+                if (!currentProject) return;
+                const storedAudio = await getMediaBlob(`${currentProject.id}_audio`);
+                if (!storedAudio) {
+                    setError("Yeniden analiz için ses dosyasını tekrar seçmelisin.");
+                    return;
+                }
+                await analyzeFile(storedAudio, currentProject, currentProject.themeMode);
+            };
+
+            const onSyncClick = useCallback(() => {
+                if (activeIndex !== -1 && lyricsContainerRef.current && lineRefs.current[activeIndex]) {
+                    isAutoScrolling.current = true;
+                    userHasScrolled.current = false;
+                    setSyncState(prev => ({ ...prev, visible: false }));
+                    const container = lyricsContainerRef.current;
+                    const activeEl = lineRefs.current[activeIndex];
+                    const topPos = activeEl.offsetTop - (container.clientHeight / 2) + (activeEl.clientHeight / 2);
+                    container.scrollTo({ top: topPos, behavior: 'smooth' });
+                    setTimeout(() => { isAutoScrolling.current = false; }, 650);
                 }
             }, [activeIndex]);
 
+            const renderAlbumArt = () => {
+                if (!currentProject) return null;
+                const ArtComponent = ALBUM_ARTS[(currentProject.fileName?.length || 0) % ALBUM_ARTS.length];
+                return <ArtComponent />;
+            };
+
+            const progressPercent = duration > 0 ? Math.min(100, Math.max(0, ((currentTime / 1000) / duration) * 100)) : 0;
+
             return (
-                <div className={`fixed inset-0 w-full h-full bg-black overflow-hidden font-default select-none ${currentFont.class}`}>
-                    <audio ref={audioRef} src={fileBlob || undefined} className="hidden" onPlay={()=>setIsPlaying(true)} onPause={()=>setIsPlaying(false)} />
+                <div className={`fixed inset-0 w-full h-full bg-black overflow-hidden select-none ${currentFont.class}`}>
+                    <audio
+                        ref={audioRef}
+                        src={fileBlob || undefined}
+                        className="hidden"
+                        onPlay={() => setIsPlaying(true)}
+                        onPause={() => setIsPlaying(false)}
+                    />
                     <input type="file" ref={fileInputRef} accept="audio/*" className="hidden" onChange={handleReupload}/>
                     <input type="file" ref={customVideoInputRef} accept="video/*" className="hidden" onChange={handleCustomVideoReupload}/>
-                    {error && <div onClick={()=>setError("")} className="fixed bottom-8 left-4 right-4 z-[100] glass-panel bg-red-900/80 border-red-500/50 p-4 rounded-2xl text-white flex items-center gap-3 shadow-2xl slide-in-bottom cursor-pointer backdrop-blur-md"><Icon name="AlertCircle" className="text-red-400 shrink-0"/><span className="text-sm font-medium pr-4">{error}</span><Icon name="X" size={16} className="ml-auto text-white/50"/></div>}
-                    {isLoading && <div className="fixed inset-0 z-[110] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-6 fade-in touch-none"><Icon name="Loader2" size={48} className="text-blue-500 animate-spin mb-6" /><p className="text-white text-lg font-bold animate-pulse text-center">{loadingStep}</p><p className="text-gray-500 text-xs mt-4">Lütfen bekleyin...</p></div>}
-                    {manualSyncMode && <ManualSyncView lyrics={lyrics} setLyrics={setLyrics} onClose={() => setManualSyncMode(false)} audioRef={audioRef} setIsPlaying={setIsPlaying} />}
-                    <EditorDrawer isOpen={isLeftMenuOpen} onClose={()=>setIsLeftMenuOpen(false)} lyrics={lyrics} setLyrics={setLyrics} currentProject={currentProject} updateProjectAndSave={updateProjectAndSave} startManualSync={() => { setIsLeftMenuOpen(false); setManualSyncMode(true); }} />
-                    {view === 'projects' && <ProjectsView projects={projects} setView={setView} loadProject={loadProject} deleteProject={deleteProject} effectiveApiKey={effectiveApiKey} setError={setError} />}
-                    {view === 'createProject' && <CreateProjectWizard setView={setView} createNewProject={createNewProject} setFileBlob={setFileBlob} setVideoBlob={setVideoBlob} analyzeFile={analyzeFile} />}
-                    {view === 'settings' && <SettingsView setView={setView} settings={settings} saveSettings={saveSettings} />}
-                     <div className={`fixed inset-0 bg-black transition-transform duration-500 ${view === 'player' ? 'translate-x-0' : 'translate-x-full'}`}>
+
+                    {error && (
+                        <div onClick={() => setError("")} className="fixed top-12 left-4 right-4 max-w-lg mx-auto z-[120] glass-panel bg-red-950/90 border-red-500/50 p-4 rounded-2xl text-white flex items-center gap-3 shadow-2xl fade-in cursor-pointer">
+                            <Icon name="AlertTriangle" className="text-red-400 shrink-0" size={20}/>
+                            <span className="text-xs font-medium leading-relaxed flex-1">{error}</span>
+                            <Icon name="X" size={16} className="text-white/60 shrink-0"/>
+                        </div>
+                    )}
+
+                    {isLoading && (
+                        <div className="fixed inset-0 z-[110] bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 fade-in">
+                            <div className="relative mb-6">
+                                <div className="w-16 h-16 rounded-full border-4 border-blue-500/20 border-t-blue-500 animate-spin"></div>
+                                <Icon name="Sparkles" size={22} className="text-blue-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                            </div>
+                            <p className="text-white text-base font-bold text-center max-w-xs">{loadingStep}</p>
+                            <p className="text-gray-500 text-xs mt-2">Ses dalgaları işleniyor...</p>
+                        </div>
+                    )}
+
+                    {manualSyncMode && (
+                        <ManualSyncView
+                            lyrics={lyrics}
+                            setLyrics={setLyrics}
+                            onClose={() => setManualSyncMode(false)}
+                            audioRef={audioRef}
+                            setIsPlaying={setIsPlaying}
+                        />
+                    )}
+
+                    <EditorDrawer
+                        isOpen={isLeftMenuOpen}
+                        onClose={() => setIsLeftMenuOpen(false)}
+                        lyrics={lyrics}
+                        setLyrics={setLyrics}
+                        currentProject={currentProject}
+                        updateProjectAndSave={updateProjectAndSave}
+                        startManualSync={() => { setIsLeftMenuOpen(false); setManualSyncMode(true); }}
+                        onReanalyze={handleReanalyzeFromEditor}
+                        hasApiKey={Boolean(effectiveApiKey)}
+                    />
+
+                    {view === 'projects' && (
+                        <ProjectsView
+                            projects={projects}
+                            setView={setView}
+                            loadProject={loadProject}
+                            deleteProject={deleteProject}
+                            effectiveApiKey={effectiveApiKey}
+                            setError={setError}
+                        />
+                    )}
+
+                    {view === 'createProject' && (
+                        <CreateProjectWizard
+                            setView={setView}
+                            createNewProject={createNewProject}
+                            analyzeFile={analyzeFile}
+                            effectiveApiKey={effectiveApiKey}
+                        />
+                    )}
+
+                    {view === 'settings' && (
+                        <SettingsView
+                            setView={setView}
+                            settings={settings}
+                            saveSettings={saveSettings}
+                        />
+                    )}
+
+                    {/* PLAYER STAGE */}
+                    <div className={`fixed inset-0 bg-black transition-transform duration-500 ${view === 'player' ? 'translate-x-0' : 'translate-x-full'}`}>
                         {currentProject && view === 'player' && (
                             <>
+                                {/* BACKGROUND LAYER */}
                                 {currentProject.themeMode === 'nostalgic' ? (
                                     <div className="absolute inset-0 z-0 overflow-hidden bg-black">
-                                        <video ref={videoRef} src={getVideoSrc() || undefined} className="w-full h-full object-cover opacity-70" loop muted playsInline />
-                                        {(!getVideoSrc() && !videoRef.current?.readyState) && <div className="absolute top-24 left-4 z-20"><button onClick={() => customVideoInputRef.current.click()} className="bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-full text-[10px] text-gray-300 flex items-center gap-1 hover:bg-white/20"><Icon name="VideoOff" size={12}/> Video Yok / Değiştir</button></div>}
+                                        {videoBlob ? (
+                                            <video
+                                                ref={videoRef}
+                                                src={videoBlob}
+                                                className="w-full h-full object-cover opacity-65 scale-105"
+                                                loop
+                                                muted
+                                                playsInline
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-gradient-to-br from-purple-950/40 via-black to-indigo-950/40"></div>
+                                        )}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/70"></div>
+                                        <div className="absolute top-24 left-6 z-20">
+                                            <button
+                                                onClick={() => customVideoInputRef.current.click()}
+                                                className="glass-button px-3.5 py-1.5 rounded-full text-[11px] text-gray-300 flex items-center gap-1.5 hover:text-white"
+                                            >
+                                                <Icon name="Video" size={13}/> {videoBlob ? "Videoyu Değiştir" : "Arka Plan Videosu Ekle"}
+                                            </button>
+                                        </div>
                                     </div>
-                                ) : ( <div className="absolute inset-0 z-0 breathing-bg"></div> )}
-                                <div className="pt-12 px-6 pb-4 z-30 absolute top-0 left-0 right-0 flex items-center justify-between"><button onClick={handleBackToMenu} className="glass-button p-2 px-4 rounded-full text-white flex items-center gap-1 text-sm font-bold backdrop-blur-xl"><Icon name="ChevronLeft" size={18} />Projeler</button><button onClick={() => setIsLeftMenuOpen(true)} className="glass-button p-3 rounded-full text-white backdrop-blur-xl"><Icon name="Edit3" size={18} /></button></div>
-                                {!fileBlob && <div className="absolute inset-0 z-40 flex flex-col items-center justify-center p-8 text-center bg-black/80 backdrop-blur-md"><Icon name="FileAudio" size={64} className="text-gray-600 mb-6"/><h3 className="text-white font-bold text-2xl mb-2">{currentProject.fileName}</h3><p className="text-gray-400 text-sm mb-8 max-w-xs mx-auto">Dosya bulunamadı.</p><button onClick={() => fileInputRef.current.click()} className="bg-[#007AFF] px-8 py-4 rounded-full text-white font-bold shadow-lg">Müziği Seç</button></div>}
-                                {currentProject.themeMode === 'classic' && (
-                                    <div className={`absolute top-28 left-6 right-6 z-20 transition-all duration-500 opacity-100 scale-100 blur-0`}>
-                                        <div className="flex items-center gap-5"><div className="w-20 h-20 rounded-xl overflow-hidden shadow-2xl shadow-black/50 border border-white/10 shrink-0 bg-gray-900">{renderAlbumArt()}</div><div className="overflow-hidden"><h1 className="text-2xl font-bold text-white truncate leading-tight">{currentProject.name}</h1><p className="text-gray-400 font-medium truncate">{currentProject.artist || "Bilinmiyor"}</p></div></div>
+                                ) : (
+                                    <div
+                                        className="absolute inset-0 z-0 transition-transform duration-150"
+                                        style={{
+                                            background: `radial-gradient(circle at 20% 25%, rgba(59, 130, 246, ${0.14 + bassPulse * 0.22}) 0%, rgba(139, 92, 246, ${0.08 + bassPulse * 0.14}) 38%, #000000 75%)`,
+                                            transform: `scale(${1 + bassPulse * 0.04})`
+                                        }}
+                                    ></div>
+                                )}
+
+                                {/* TOP BAR */}
+                                <div className="pt-11 px-6 pb-4 z-30 absolute top-0 left-0 right-0 flex items-center justify-between">
+                                    <button onClick={handleBackToMenu} className="glass-button py-2 px-4 rounded-full text-white flex items-center gap-1 text-xs font-bold">
+                                        <Icon name="ChevronLeft" size={16} /> Projeler
+                                    </button>
+                                    <button onClick={() => setIsLeftMenuOpen(true)} className="glass-button p-2.5 rounded-full text-white hover:bg-white/20">
+                                        <Icon name="SlidersHorizontal" size={18} />
+                                    </button>
+                                </div>
+
+                                {/* MISSING AUDIO FALLBACK */}
+                                {!fileBlob && (
+                                    <div className="absolute inset-0 z-40 flex flex-col items-center justify-center p-8 text-center bg-black/85 backdrop-blur-xl">
+                                        <Icon name="FileAudio" size={56} className="text-blue-400 mb-5"/>
+                                        <h3 className="text-white font-bold text-xl mb-2">{currentProject.fileName}</h3>
+                                        <p className="text-gray-400 text-xs mb-6 max-w-xs leading-relaxed">
+                                            Bu projenin ses dosyası yerel önbellekte bulunamadı. Devam etmek için dosyayı yeniden bağla.
+                                        </p>
+                                        <button onClick={() => fileInputRef.current.click()} className="bg-blue-600 hover:bg-blue-500 px-7 py-3.5 rounded-full text-white text-sm font-bold shadow-lg">
+                                            Ses Dosyasını Bağla
+                                        </button>
                                     </div>
                                 )}
-                                <div ref={lyricsContainerRef} onScroll={handleScroll} className={`absolute inset-0 overflow-y-auto no-scrollbar z-10 overscroll-contain px-6 ${currentProject.themeMode === 'nostalgic' ? 'flex items-center justify-center' : 'top-52 bottom-36'}`}>
-                                    {currentProject.themeMode === 'classic' && (
-                                        <div className="py-[30vh] lyrics-wrapper space-y-8">
+
+                                {/* CLASSIC HEADER */}
+                                {currentProject.themeMode === 'classic' && (
+                                    <div className="absolute top-24 left-6 right-6 z-20">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-2xl border border-white/10 shrink-0">
+                                                {renderAlbumArt()}
+                                            </div>
+                                            <div className="overflow-hidden">
+                                                <h1 className="text-xl font-extrabold text-white truncate">{currentProject.name}</h1>
+                                                <p className="text-gray-400 text-sm font-medium truncate">{currentProject.artist || "Bilinmiyor"}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* LYRICS VIEWPORT */}
+                                <div
+                                    ref={lyricsContainerRef}
+                                    onScroll={handleScroll}
+                                    className={`absolute inset-0 overflow-y-auto no-scrollbar z-10 overscroll-contain px-6 ${currentProject.themeMode === 'nostalgic' ? 'flex items-center justify-center' : 'top-44 bottom-40 lyrics-mask'}`}
+                                >
+                                    {lyrics.length === 0 ? (
+                                        <div className="h-full flex flex-col items-center justify-center text-center text-gray-500">
+                                            <p className="text-sm font-medium mb-3">Bu projede henüz şarkı sözü yok.</p>
+                                            <button
+                                                onClick={() => setIsLeftMenuOpen(true)}
+                                                className="glass-button px-4 py-2 rounded-full text-xs text-blue-400 font-bold"
+                                            >
+                                                Editörü Aç & Söz Ekle
+                                            </button>
+                                        </div>
+                                    ) : currentProject.themeMode === 'classic' ? (
+                                        <div className="py-[28vh] space-y-7 max-w-2xl mx-auto">
                                             {lyrics.map((line, index) => {
                                                 const isActive = index === activeIndex;
+                                                const isPast = activeIndex !== -1 && index < activeIndex;
                                                 return (
-                                                    <div key={index} onClick={() => seekAudio(line.ms)} className={`relative transition-all duration-500 origin-left cursor-pointer pl-4 ${isActive ? 'scale-110 opacity-100 translate-x-2' : 'scale-100 opacity-30 blur-[1px]'}`}>
-                                                        {isActive && <div className="active-line-indicator"></div>}
-                                                        <p className={`text-2xl md:text-4xl font-bold leading-tight ${isActive ? 'text-white drop-shadow-md' : 'text-gray-400'}`}>{line.text}</p>
+                                                    <div
+                                                        key={index}
+                                                        ref={el => lineRefs.current[index] = el}
+                                                        onClick={() => seekAudio(line.ms)}
+                                                        className={`relative transition-all duration-300 origin-left cursor-pointer pl-4 ${isActive ? 'scale-[1.04] opacity-100' : isPast ? 'opacity-35 hover:opacity-70' : 'opacity-45 hover:opacity-80'}`}
+                                                    >
+                                                        {isActive && <div className="active-line-bar"></div>}
+                                                        <p className={`text-2xl md:text-3xl font-extrabold leading-snug tracking-tight ${isActive ? 'text-white drop-shadow-[0_2px_12px_rgba(255,255,255,0.25)]' : 'text-gray-300'}`}>
+                                                            {line.text}
+                                                        </p>
                                                     </div>
                                                 );
                                             })}
                                         </div>
-                                    )}
-                                    {currentProject.themeMode === 'nostalgic' && (
-                                        <div className="w-full flex justify-center text-center px-4">
-                                            <div className={`transition-all duration-500 transform ${activeIndex !== -1 ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-                                                {activeIndex !== -1 && lyrics[activeIndex] ? (<p className={`text-white text-2xl md:text-4xl font-bold leading-relaxed tracking-wide clean-shadow ${currentFont.class}`}>{lyrics[activeIndex].text}</p>) : (<div className="h-16"></div>)}
+                                    ) : (
+                                        <div className="w-full max-w-2xl flex justify-center text-center px-4">
+                                            <div className={`transition-all duration-300 transform ${activeIndex !== -1 ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-2'}`}>
+                                                {activeIndex !== -1 && lyrics[activeIndex] && (
+                                                    <p className={`text-white text-2xl md:text-4xl font-extrabold leading-relaxed tracking-wide clean-shadow ${currentFont.class}`}>
+                                                        {lyrics[activeIndex].text}
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                     )}
                                 </div>
-                                {currentProject.themeMode === 'classic' && <SyncButton onClick={onSyncClick} type={syncState.type} visible={syncState.visible} />}
+
+                                {currentProject.themeMode === 'classic' && (
+                                    <SyncButton onClick={onSyncClick} type={syncState.type} visible={syncState.visible} />
+                                )}
+
+                                {/* BOTTOM TRANSPORT CONTROLS */}
                                 {fileBlob && (
-                                     <div className="absolute bottom-0 left-0 right-0 pb-10 pt-6 px-8 bg-gradient-to-t from-black via-black/90 to-transparent z-30 flex flex-col items-center">
-                                        <div className="w-full flex items-center gap-3 text-xs font-bold text-gray-400 mb-6 cursor-pointer py-4 group" onClick={(e)=>{if(!audioRef.current)return; const r=e.currentTarget.getBoundingClientRect(); seekAudio(((e.clientX-r.left)/r.width)*duration*1000);}}>
-                                            <span className="w-8 text-right">{formatTime(currentTime / 1000)}</span>
-                                            <div className="flex-1 h-1.5 bg-gray-700/50 rounded-full overflow-hidden backdrop-blur-sm"><div className="h-full bg-white rounded-full group-hover:bg-blue-400 transition-colors" style={{ width: `${(currentTime / 1000 / duration) * 100}%` }}></div></div>
-                                            <span className="w-8">{formatTime(duration)}</span>
-                                        </div>
-                                        <div className="flex items-center gap-10">
-                                            <button onClick={() => seekAudio(currentTime - 10000)} className="text-gray-400 hover:text-white"><Icon name="Rewind" size={32} /></button>
-                                            <button onClick={togglePlay} className="bg-white text-black p-5 rounded-full hover:scale-105 active:scale-95 transition-all shadow-xl shadow-white/10">{isPlaying ? <Icon name="Pause" size={32} fill="currentColor" /> : <Icon name="Play" size={32} fill="currentColor" className="ml-1" />}</button>
-                                            <button onClick={() => seekAudio(currentTime + 10000)} className="text-gray-400 hover:text-white"><Icon name="FastForward" size={32} /></button>
+                                    <div className="absolute bottom-0 left-0 right-0 pb-9 pt-6 px-6 bg-gradient-to-t from-black via-black/95 to-transparent z-30 flex flex-col items-center">
+                                        <div className="w-full max-w-xl">
+                                            <div
+                                                className="w-full flex items-center gap-3 text-[11px] font-mono font-bold text-gray-400 mb-5 cursor-pointer py-2 group"
+                                                onClick={(e) => {
+                                                    if (!duration) return;
+                                                    const r = e.currentTarget.getBoundingClientRect();
+                                                    const ratio = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+                                                    seekAudio(ratio * duration * 1000);
+                                                }}
+                                            >
+                                                <span className="w-10 text-right">{formatTime(currentTime / 1000)}</span>
+                                                <div className="flex-1 h-1.5 bg-white/15 rounded-full overflow-hidden relative">
+                                                    <div
+                                                        className="h-full bg-white rounded-full group-hover:bg-blue-400 transition-colors"
+                                                        style={{ width: `${progressPercent}%` }}
+                                                    ></div>
+                                                </div>
+                                                <span className="w-10">{formatTime(duration)}</span>
+                                            </div>
+
+                                            <div className="flex items-center justify-center gap-10">
+                                                <button onClick={() => seekAudio(currentTime - 5000)} className="text-gray-400 hover:text-white active:scale-90 transition-transform p-2">
+                                                    <Icon name="RotateCcw" size={26} />
+                                                </button>
+                                                <button
+                                                    onClick={togglePlay}
+                                                    className="bg-white text-black w-16 h-16 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl shadow-white/15"
+                                                >
+                                                    {isPlaying ? <Icon name="Pause" size={28} fill="currentColor" /> : <Icon name="Play" size={28} fill="currentColor" className="ml-1" />}
+                                                </button>
+                                                <button onClick={() => seekAudio(currentTime + 5000)} className="text-gray-400 hover:text-white active:scale-90 transition-transform p-2">
+                                                    <Icon name="RotateCw" size={26} />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 )}
@@ -328,5 +1700,4 @@
     </script>
 </body>
 </html>
-
-
+ 
