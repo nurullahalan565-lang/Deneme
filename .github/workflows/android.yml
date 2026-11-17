@@ -1,9 +1,8 @@
-name: Build APK
+name: Build Android APK (Cordova)
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main", "master" ]
   workflow_dispatch:
 
 jobs:
@@ -11,30 +10,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Depoyu Çek
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Node.js Kur
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: '20'
 
-      - name: Install Cordova
-        run: npm install -g cordova
+      - name: Java 17 Kur (Android Build İçin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
-      - name: Create App
+      - name: Android SDK Kur
+        uses: android-actions/setup-android@v3
+
+      - name: Cordova Kur ve Klasörleri Hazırla
         run: |
-          cordova create app com.senin.app LyricalAI
-          cd app
-          cordova platform add android
-          rm -rf www/*
-          cp ../index.html www/
-          cp ../config.xml .
-          cp ../icon.png .
-          cordova build android
+          npm install -g cordova
+          mkdir -p www
+          if [ -f "index.html" ]; then cp index.html www/index.html; fi
 
-      - name: Upload APK
+      - name: Android Platformu Ekle ve APK Derle
+        run: |
+          cordova platform add android
+          cordova build android --debug
+
+      - name: APK Dosyasını Yükle
         uses: actions/upload-artifact@v4
         with:
-          name: apk
-          path: app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+          name: LyricalAI-APK
+          path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
+          
