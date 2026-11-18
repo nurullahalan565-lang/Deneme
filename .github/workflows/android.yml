@@ -42,6 +42,12 @@ jobs:
           fs.mkdirSync("plugins_src/lyrical-native/src/android", { recursive: true });
           fs.mkdirSync("plugins_src/lyrical-native/www", { recursive: true });
 
+          fs.writeFileSync("plugins_src/lyrical-native/package.json", JSON.stringify({
+            name: "cordova-plugin-lyrical-native",
+            version: "1.0.0",
+            cordova: { id: "cordova-plugin-lyrical-native", platforms: ["android"] }
+          }, null, 2));
+
           fs.writeFileSync("plugins_src/lyrical-native/plugin.xml", `<?xml version="1.0" encoding="UTF-8"?>
           <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android" id="cordova-plugin-lyrical-native" version="1.0.0">
             <name>LyricalNative</name>
