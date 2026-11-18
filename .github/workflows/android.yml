@@ -44,12 +44,12 @@ jobs:
 
           fs.writeFileSync("plugins_src/lyrical-native/package.json", JSON.stringify({
             name: "cordova-plugin-lyrical-native",
-            version: "2.0.0",
+            version: "2.1.0",
             cordova: { id: "cordova-plugin-lyrical-native", platforms: ["android"] }
           }, null, 2));
 
           fs.writeFileSync("plugins_src/lyrical-native/plugin.xml", `<?xml version="1.0" encoding="UTF-8"?>
-          <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android" id="cordova-plugin-lyrical-native" version="2.0.0">
+          <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android" id="cordova-plugin-lyrical-native" version="2.1.0">
             <name>LyricalNative</name>
             <js-module src="www/lyricalNative.js" name="LyricalNative">
               <clobbers target="window.LyricalNative" />
@@ -58,6 +58,7 @@ jobs:
               <config-file target="res/xml/config.xml" parent="/*">
                 <feature name="LyricalNative">
                   <param name="android-package" value="com.nurullah.lyricalai.LyricalNative" />
+                  <param name="onload" value="true" />
                 </feature>
               </config-file>
               <config-file target="AndroidManifest.xml" parent="/manifest">
@@ -113,6 +114,9 @@ jobs:
           import android.os.Environment;
           import android.os.PowerManager;
           import android.util.Base64;
+          import android.view.Display;
+          import android.view.Window;
+          import android.view.WindowManager;
           import org.apache.cordova.CallbackContext;
           import org.apache.cordova.CordovaPlugin;
           import org.json.JSONArray;
@@ -135,6 +139,40 @@ jobs:
             protected void pluginInitialize() {
               super.pluginInitialize();
               registerMediaReceiver();
+              enableHighRefreshRate();
+            }
+
+            @Override
+            public void onResume(boolean multitasking) {
+              super.onResume(multitasking);
+              enableHighRefreshRate();
+            }
+
+            private void enableHighRefreshRate() {
+              cordova.getActivity().runOnUiThread(() -> {
+                try {
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    Window window = cordova.getActivity().getWindow();
+                    Display display = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+                      ? cordova.getActivity().getDisplay()
+                      : cordova.getActivity().getWindowManager().getDefaultDisplay();
+                    if (display != null && window != null) {
+                      Display.Mode current = display.getMode();
+                      Display.Mode bestMode = current;
+                      for (Display.Mode mode : display.getSupportedModes()) {
+                        if (mode.getPhysicalWidth() == current.getPhysicalWidth() &&
+                            mode.getPhysicalHeight() == current.getPhysicalHeight() &&
+                            mode.getRefreshRate() > bestMode.getRefreshRate()) {
+                          bestMode = mode;
+                        }
+                      }
+                      WindowManager.LayoutParams params = window.getAttributes();
+                      params.preferredDisplayModeId = bestMode.getModeId();
+                      window.setAttributes(params);
+                    }
+                  }
+                } catch (Exception ignored) {}
+              });
             }
 
             private void registerMediaReceiver() {
