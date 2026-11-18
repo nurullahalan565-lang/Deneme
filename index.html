@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; media-src * data: blob:; style-src * 'unsafe-inline';">
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob: file:; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: file: 'unsafe-inline'; media-src * data: blob: file:; style-src * 'unsafe-inline';">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>LyricalAI Studio Pro</title>
     <meta name="mobile-web-app-capable" content="yes">
@@ -112,13 +112,63 @@
             font-size: 32px;
         }
 
-        @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        @keyframes slideInBottom { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUpFade {
-            from { opacity: 0; transform: translate(-50%, 30px) scale(0.85); }
-            to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+        /* Sayfa ve Modal Geçiş Animasyonları */
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0.7; }
+            to { transform: translateX(0); opacity: 1; }
         }
+        @keyframes slideInBottom {
+            from { transform: translateY(100%); opacity: 0.6; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes modalPopIn {
+            from { opacity: 0; transform: scale(0.94) translateY(18px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes stepSlideNext {
+            from { opacity: 0; transform: translateX(28px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes stepSlidePrev {
+            from { opacity: 0; transform: translateX(-28px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Juicy Satıra Odaklan Butonu & İkon Animasyonları */
+        @keyframes syncPillEnter {
+            0% { opacity: 0; transform: translate(-50%, 34px) scale(0.72); }
+            65% { opacity: 1; transform: translate(-50%, -4px) scale(1.06); }
+            100% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+        }
+        @keyframes pillJelly {
+            0% { transform: scale(1, 1); }
+            30% { transform: scale(1.14, 0.88); }
+            55% { transform: scale(0.94, 1.07); }
+            78% { transform: scale(1.03, 0.98); }
+            100% { transform: scale(1, 1); }
+        }
+        @keyframes juicyIconPop {
+            0% { opacity: 0; transform: scale(0.25) rotate(-110deg); }
+            58% { opacity: 1; transform: scale(1.32) rotate(14deg); }
+            80% { transform: scale(0.9) rotate(-6deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+
+        /* Ritim Stüdyosu Ultra Hızlı Seri Satır Geçişleri (115ms) */
+        @keyframes fastLineIn {
+            0% { opacity: 0.25; transform: translateY(20px) scale(0.95); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes fastPrevIn {
+            0% { opacity: 0; transform: translateY(12px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fastNextIn {
+            0% { opacity: 0; transform: translateY(14px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
         @keyframes ripple {
             0% { transform: scale(0.95); opacity: 0.7; }
             100% { transform: scale(1.8); opacity: 0; }
@@ -128,11 +178,27 @@
             45% { transform: scale(1.15); opacity: 1; }
             100% { transform: scale(0.95); opacity: 0; }
         }
+        @keyframes miniBarEnter {
+            from { opacity: 0; transform: translateY(16px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
 
-        .slide-in-right { animation: slideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .slide-in-bottom { animation: slideInBottom 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .slide-in-right { animation: slideInRight 0.34s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        .slide-in-bottom { animation: slideInBottom 0.36s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        .modal-pop-in { animation: modalPopIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        .step-slide-next { animation: stepSlideNext 0.26s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        .step-slide-prev { animation: stepSlidePrev 0.26s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
         .fade-in { animation: fadeIn 0.25s ease-out forwards; }
-        .sync-btn-enter { animation: slideUpFade 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+        .sync-btn-enter { animation: syncPillEnter 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+        .pill-jelly { animation: pillJelly 0.42s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .juicy-icon-pop { display: inline-flex; animation: juicyIconPop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+        .fast-line-in { animation: fastLineIn 0.115s cubic-bezier(0.2, 0.9, 0.3, 1) forwards; }
+        .fast-prev-in { animation: fastPrevIn 0.115s ease-out forwards; }
+        .fast-next-in { animation: fastNextIn 0.115s ease-out forwards; }
+
+        .mini-bar-enter { animation: miniBarEnter 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
         .animate-ripple { animation: ripple 0.55s ease-out forwards; }
         .count-anim { animation: countPulse 0.95s ease-out infinite; }
 
@@ -145,9 +211,7 @@
             top: 10%;
             bottom: 10%;
             width: 4px;
-            background: linear-gradient(180deg, #60a5fa, #a855f7);
             border-radius: 99px;
-            box-shadow: 0 0 12px rgba(96, 165, 250, 0.7);
         }
         .lyrics-mask {
             mask-image: linear-gradient(to bottom, transparent 0%, black 16%, black 84%, transparent 100%);
@@ -156,6 +220,15 @@
         input, textarea, select { appearance: none; -webkit-appearance: none; outline: none; }
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            padding: 0;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: 2px solid rgba(255,255,255,0.2); border-radius: 12px; }
     </style>
 </head>
 <body>
@@ -164,7 +237,17 @@
     <script type="text/babel">
         const { useState, useRef, useEffect, useCallback, useMemo } = React;
 
-        // --- INDEXED DB MEDIA STORAGE ---
+        // --- HEX TO RGB HELPER ---
+        const hexToRgb = (hex, fallback = "59, 130, 246") => {
+            if (!hex || typeof hex !== 'string') return fallback;
+            const clean = hex.replace('#', '').trim();
+            if (clean.length !== 6) return fallback;
+            const num = parseInt(clean, 16);
+            if (isNaN(num)) return fallback;
+            return `${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}`;
+        };
+
+        // --- INDEXED DB & TELEFON KALICI DEPOLAMA (Music/LyricalAI) ---
         const DB_NAME = 'LyricalAI_MediaDB_v1';
         const STORE_NAME = 'media_files';
 
@@ -180,40 +263,143 @@
             req.onerror = () => reject(req.error);
         });
 
+        // Blob'u telefonun ortak Music/LyricalAI klasörüne parça parça (512KB) yazar (güncelleme/silme korumalı)
+        const syncBlobToPhoneStorage = async (nativeFileName, blob) => {
+            if (!window.LyricalNative || !blob) return;
+            try {
+                const CHUNK_SIZE = 512 * 1024;
+                let offset = 0;
+                let index = 0;
+                while (offset < blob.size) {
+                    const slice = blob.slice(offset, offset + CHUNK_SIZE);
+                    const b64 = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve((reader.result || '').split(',')[1] || '');
+                        reader.onerror = () => reject(new Error('CHUNK_READ_ERR'));
+                        reader.readAsDataURL(slice);
+                    });
+                    await new Promise((resolve, reject) => {
+                        window.LyricalNative.saveMediaChunk(
+                            nativeFileName,
+                            b64,
+                            index > 0,
+                            () => resolve(true),
+                            (err) => reject(err)
+                        );
+                    });
+                    offset += CHUNK_SIZE;
+                    index++;
+                }
+            } catch (e) {
+                console.warn('Telefon yedekleme hatası:', e);
+            }
+        };
+
+        // Telefonun Music/LyricalAI klasöründen dosyayı okuyup Blob'a çevirir
+        const restoreBlobFromPhoneStorage = async (nativeFileName, mimeType = 'application/octet-stream') => {
+            if (!window.LyricalNative) return null;
+            try {
+                const CHUNK_SIZE = 512 * 1024;
+                let offset = 0;
+                const byteArrays = [];
+                while (true) {
+                    const res = await new Promise((resolve) => {
+                        window.LyricalNative.readMediaChunk(
+                            nativeFileName,
+                            offset,
+                            CHUNK_SIZE,
+                            (r) => resolve(r),
+                            () => resolve({ exists: false })
+                        );
+                    });
+                    if (!res || !res.exists) return null;
+                    if (res.data) {
+                        const binStr = atob(res.data);
+                        const bytes = new Uint8Array(binStr.length);
+                        for (let i = 0; i < binStr.length; i++) bytes[i] = binStr.charCodeAt(i);
+                        byteArrays.push(bytes);
+                        offset += bytes.length;
+                    }
+                    if (res.eof || !res.data) break;
+                }
+                if (byteArrays.length === 0) return null;
+                return new Blob(byteArrays, { type: mimeType });
+            } catch (e) {
+                return null;
+            }
+        };
+
+        const getNativeFileName = (key) => {
+            if (key.endsWith('_audio')) return `${key}.mp3`;
+            if (key.endsWith('_cover')) return `${key}.jpg`;
+            if (key.endsWith('_video')) return `${key}.mp4`;
+            return `${key}.bin`;
+        };
+
         const saveMediaBlob = async (key, blob) => {
             if (!blob) return;
             try {
                 const db = await openMediaDB();
-                return new Promise((resolve, reject) => {
+                await new Promise((resolve, reject) => {
                     const tx = db.transaction(STORE_NAME, 'readwrite');
                     tx.objectStore(STORE_NAME).put(blob, key);
                     tx.oncomplete = () => resolve(true);
                     tx.onerror = () => reject(tx.error);
                 });
             } catch (e) { console.warn('IndexedDB kayıt hatası:', e); }
+            // Arka planda telefon hafızasına (Music/LyricalAI) da kaydet
+            syncBlobToPhoneStorage(getNativeFileName(key), blob);
         };
 
-        const getMediaBlob = async (key) => {
+        const getMediaBlob = async (key, fallbackMime = 'application/octet-stream') => {
             try {
                 const db = await openMediaDB();
-                return new Promise((resolve, reject) => {
+                const local = await new Promise((resolve, reject) => {
                     const tx = db.transaction(STORE_NAME, 'readonly');
                     const req = tx.objectStore(STORE_NAME).get(key);
                     req.onsuccess = () => resolve(req.result || null);
                     req.onerror = () => reject(req.error);
                 });
-            } catch (e) { return null; }
+                if (local) return local;
+            } catch (e) {}
+
+            // Uygulama içi önbellekte yoksa (güncelleme/yeniden kurulum sonrası) telefon klasöründen geri çek
+            const restored = await restoreBlobFromPhoneStorage(getNativeFileName(key), fallbackMime);
+            if (restored) {
+                try {
+                    const db = await openMediaDB();
+                    const tx = db.transaction(STORE_NAME, 'readwrite');
+                    tx.objectStore(STORE_NAME).put(restored, key);
+                } catch (e) {}
+                return restored;
+            }
+            return null;
         };
 
-        const deleteProjectMedia = async (projectId) => {
+        const deleteMediaKey = async (key) => {
             try {
                 const db = await openMediaDB();
                 const tx = db.transaction(STORE_NAME, 'readwrite');
-                tx.objectStore(STORE_NAME).delete(`${projectId}_audio`);
-                tx.objectStore(STORE_NAME).delete(`${projectId}_video`);
-                tx.objectStore(STORE_NAME).delete(`${projectId}_cover`);
+                tx.objectStore(STORE_NAME).delete(key);
             } catch (e) {}
+            if (window.LyricalNative) {
+                window.LyricalNative.deleteMediaFile(getNativeFileName(key));
+            }
         };
+
+        const deleteProjectMedia = async (projectId) => {
+            await deleteMediaKey(`${projectId}_audio`);
+            await deleteMediaKey(`${projectId}_video`);
+            await deleteMediaKey(`${projectId}_cover`);
+        };
+
+        const blobToDataUrl = (blob) => new Promise((resolve) => {
+            if (!blob) return resolve("");
+            const r = new FileReader();
+            r.onloadend = () => resolve(r.result || "");
+            r.onerror = () => resolve("");
+            r.readAsDataURL(blob);
+        });
 
         // --- GÖMÜLÜ MP3 KAPAĞI ÇEKME (ID3v2 APIC) ---
         const extractMp3CoverBlob = async (audioFile) => {
@@ -284,12 +470,6 @@
         };
 
         // --- APK (NATIVE) & TARAYICI BİLDİRİM SİSTEMİ ---
-        document.addEventListener('deviceready', () => {
-            if (window.LyricalNative) {
-                window.LyricalNative.requestPermission();
-            }
-        }, false);
-
         const bildirimHazirla = async () => {
             try {
                 if (window.LyricalNative) {
@@ -404,8 +584,24 @@
 
         const ALBUM_ARTS = [ArtCyber, ArtVinyl, ArtAbstract, ArtWave, ArtGeo];
         const STORAGE_KEY_PROJECTS = 'lyrical_projects_v6';
-        const STORAGE_KEY_SETTINGS = 'lyrical_settings_v4';
+        const STORAGE_KEY_SETTINGS = 'lyrical_settings_v5';
         const ANIMATION_OFFSET_MS = 180;
+
+        const DEFAULT_SETTINGS = {
+            apiKey: "",
+            modelName: "gemini-3.5-flash",
+            bgColor1: "#3b82f6",
+            bgColor2: "#8b5cf6"
+        };
+
+        const COLOR_PRESETS = [
+            { name: "Mavi & Mor", c1: "#3b82f6", c2: "#8b5cf6" },
+            { name: "Kızıl & Turuncu", c1: "#ef4444", c2: "#f97316" },
+            { name: "Zümrüt & Turkuaz", c1: "#10b981", c2: "#06b6d4" },
+            { name: "Altın & Kehribar", c1: "#eab308", c2: "#d97706" },
+            { name: "Neon Pembe", c1: "#ec4899", c2: "#a855f7" },
+            { name: "Gece Siyahı", c1: "#27272a", c2: "#09090b" }
+        ];
 
         const FONTS = [
             { name: "Modern (Inter)", class: "font-default", id: 'default' },
@@ -448,24 +644,33 @@
             return header + body;
         };
 
-        // --- SYNC FLOATING BUTTON ---
+        // --- JUICY SYNC FLOATING BUTTON ---
         const SyncButton = ({ onClick, type, visible }) => {
+            const [jellyKey, setJellyKey] = useState(0);
+
+            useEffect(() => {
+                if (visible) setJellyKey(k => k + 1);
+            }, [type, visible]);
+
             if (!visible) return null;
             const iconName = type === 'up' ? 'ArrowUp' : type === 'down' ? 'ArrowDown' : 'Crosshair';
             return (
                 <div className="absolute bottom-44 left-1/2 -translate-x-1/2 z-40 sync-btn-enter">
                     <button
+                        key={jellyKey}
                         onClick={(e) => { e.stopPropagation(); onClick(e); }}
-                        className="bg-blue-600/90 hover:bg-blue-500 text-white px-5 py-2.5 rounded-full flex items-center gap-2.5 text-xs font-bold shadow-2xl shadow-blue-950 border border-blue-400/40 backdrop-blur-xl active:scale-95 transition-all"
+                        className="pill-jelly bg-blue-600/95 hover:bg-blue-500 text-white px-5 py-2.5 rounded-full flex items-center gap-2.5 text-xs font-bold shadow-2xl shadow-blue-950 border border-blue-300/45 backdrop-blur-xl active:scale-90 transition-colors"
                     >
-                        <Icon name={iconName} size={16} />
+                        <span key={`icon-${type}`} className="juicy-icon-pop">
+                            <Icon name={iconName} size={17} />
+                        </span>
                         <span>Satıra Odaklan</span>
                     </button>
                 </div>
             );
         };
 
-        // --- MANUAL TAP SYNC STUDIO ---
+        // --- MANUAL TAP SYNC STUDIO (ULTRA FAST 115MS TRANSITIONS) ---
         const ManualSyncView = ({ lyrics, setLyrics, onClose, audioRef, setIsPlaying }) => {
             const [activeIndex, setActiveIndex] = useState(0);
             const [tempLyrics, setTempLyrics] = useState(() => lyrics.map(l => ({ ...l })));
@@ -534,7 +739,7 @@
             };
 
             return (
-                <div className="fixed inset-0 z-[80] bg-black/95 backdrop-blur-3xl flex flex-col fade-in">
+                <div className="fixed inset-0 z-[80] bg-black/95 backdrop-blur-3xl flex flex-col modal-pop-in">
                     <div className="pt-10 px-6 pb-4 flex justify-between items-center border-b border-white/10">
                         <button onClick={onClose} className="p-2.5 bg-white/5 rounded-full hover:bg-white/10 text-gray-300">
                             <Icon name="X" size={20} />
@@ -584,13 +789,16 @@
                             </div>
                         ) : (
                             <div className="w-full h-full flex flex-col items-center justify-between py-4 max-w-lg">
-                                <div className="w-full space-y-3 flex-1 flex flex-col justify-center">
+                                <div className="w-full space-y-3 flex-1 flex flex-col justify-center overflow-hidden">
                                     {activeIndex > 0 && (
-                                        <p className="text-center text-gray-500 text-xs truncate px-4">
+                                        <p key={`prev-${activeIndex}`} className="fast-prev-in text-center text-gray-500 text-xs truncate px-4">
                                             ✓ {tempLyrics[activeIndex - 1]?.text}
                                         </p>
                                     )}
-                                    <div className="w-full min-h-[140px] flex flex-col items-center justify-center p-5 rounded-3xl bg-white/[0.04] border border-white/10 text-center">
+                                    <div
+                                        key={`curr-${activeIndex}`}
+                                        className="fast-line-in w-full min-h-[140px] flex flex-col items-center justify-center p-5 rounded-3xl bg-white/[0.05] border border-white/15 text-center shadow-lg"
+                                    >
                                         <span className="text-blue-400 text-[10px] font-bold uppercase tracking-[0.25em] mb-2">
                                             {activeIndex < tempLyrics.length ? 'SIRADAKİ SATIR' : 'TAMAMLANDI'}
                                         </span>
@@ -599,7 +807,7 @@
                                         </p>
                                     </div>
                                     {activeIndex + 1 < tempLyrics.length && (
-                                        <p className="text-center text-gray-500 text-sm truncate px-4">
+                                        <p key={`next-${activeIndex}`} className="fast-next-in text-center text-gray-500 text-sm truncate px-4">
                                             Sonraki: {tempLyrics[activeIndex + 1]?.text}
                                         </p>
                                     )}
@@ -610,7 +818,7 @@
                                     <button
                                         onPointerDown={(e) => { e.preventDefault(); handleTap(); }}
                                         disabled={activeIndex >= tempLyrics.length}
-                                        className="w-44 h-44 rounded-full bg-gradient-to-b from-[#1e1e24] to-[#0a0a0c] border border-white/15 active:border-blue-500 shadow-[0_0_60px_rgba(37,99,235,0.2)] flex flex-col items-center justify-center gap-2 transition-transform active:scale-90 touch-manipulation cursor-pointer z-20 disabled:opacity-30"
+                                        className="w-44 h-44 rounded-full bg-gradient-to-b from-[#1e1e24] to-[#0a0a0c] border border-white/15 active:border-blue-500 shadow-[0_0_60px_rgba(37,99,235,0.2)] flex flex-col items-center justify-center gap-2 transition-transform duration-75 active:scale-90 touch-manipulation cursor-pointer z-20 disabled:opacity-30"
                                     >
                                         <div className="w-16 h-16 rounded-full bg-blue-600/20 flex items-center justify-center">
                                             <div className="w-4 h-4 bg-blue-400 rounded-full shadow-[0_0_15px_#60a5fa]"></div>
@@ -632,8 +840,12 @@
             );
         };
 
-        // --- PROJECTS LIST VIEW ---
-        const ProjectsView = ({ projects, setView, loadProject, deleteProject, effectiveApiKey }) => {
+        // --- PROJECTS LIST VIEW (WITH FLOATING MINI PLAYER) ---
+        const ProjectsView = ({
+            projects, setView, loadProject, deleteProject, effectiveApiKey,
+            activeProject, hasAudioBlob, isPlaying, togglePlay, coverBlobUrl,
+            currentTime, duration, coverVersion
+        }) => {
             const [search, setSearch] = useState("");
             const [coverThumbs, setCoverThumbs] = useState({});
 
@@ -642,14 +854,14 @@
                 const loadThumbs = async () => {
                     const map = {};
                     for (const p of projects) {
-                        const blob = await getMediaBlob(`${p.id}_cover`);
+                        const blob = await getMediaBlob(`${p.id}_cover`, 'image/jpeg');
                         if (blob) map[p.id] = URL.createObjectURL(blob);
                     }
                     if (!cancelled) setCoverThumbs(map);
                 };
                 loadThumbs();
                 return () => { cancelled = true; };
-            }, [projects]);
+            }, [projects, coverVersion]);
 
             const filtered = useMemo(() =>
                 projects.filter(p =>
@@ -658,12 +870,18 @@
                 ),
             [projects, search]);
 
+            const showMiniPlayer = Boolean(activeProject && hasAudioBlob);
+            const miniProgress = duration > 0 ? Math.min(100, Math.max(0, ((currentTime / 1000) / duration) * 100)) : 0;
+            const ActiveArtComp = activeProject
+                ? ALBUM_ARTS[(activeProject.fileName?.length || 0) % ALBUM_ARTS.length]
+                : ArtCyber;
+
             return (
-                <div className="fixed inset-0 h-full flex flex-col bg-black z-10">
+                <div className="fixed inset-0 h-full flex flex-col bg-black z-10 fade-in">
                     <div className="pt-12 pb-4 px-6 flex justify-between items-center z-10">
                         <div>
                             <h1 className="text-3xl font-black text-white font-cinzel tracking-tight">LyricalAI</h1>
-                            <p className="text-gray-400 text-[11px] tracking-widest uppercase">Studio Pro v4.2</p>
+                            <p className="text-gray-400 text-[11px] tracking-widest uppercase">Studio Pro v5.0</p>
                         </div>
                         <button onClick={() => setView('settings')} className="glass-button p-3 rounded-full text-gray-200 hover:text-white transition-all active:scale-95 relative">
                             <Icon name="Settings" size={20} />
@@ -686,7 +904,7 @@
                         </div>
                     )}
 
-                    <div className="flex-1 overflow-y-auto px-6 pb-32 no-scrollbar">
+                    <div className={`flex-1 overflow-y-auto px-6 no-scrollbar ${showMiniPlayer ? 'pb-48' : 'pb-32'}`}>
                         {filtered.length === 0 ? (
                             <div className="h-72 flex flex-col items-center justify-center text-gray-500 mt-10 text-center">
                                 <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
@@ -700,11 +918,18 @@
                                 {filtered.map(p => {
                                     const ArtComp = ALBUM_ARTS[(p.fileName?.length || 0) % ALBUM_ARTS.length];
                                     const thumbUrl = coverThumbs[p.id];
+                                    const isCurrent = activeProject?.id === p.id;
                                     return (
                                         <div
                                             key={p.id}
-                                            onClick={() => loadProject(p)}
-                                            className="glass-panel p-3.5 rounded-2xl flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer hover:border-white/20"
+                                            onClick={() => {
+                                                if (isCurrent && hasAudioBlob) {
+                                                    setView('player');
+                                                } else {
+                                                    loadProject(p);
+                                                }
+                                            }}
+                                            className={`glass-panel p-3.5 rounded-2xl flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer ${isCurrent ? 'border-blue-500/40 bg-blue-950/20' : 'hover:border-white/20'}`}
                                         >
                                             <div className="flex items-center gap-3.5 overflow-hidden">
                                                 <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-white/10 relative">
@@ -716,7 +941,7 @@
                                                     <span className={`absolute bottom-1 right-1 w-2 h-2 rounded-full ${p.themeMode === 'nostalgic' ? 'bg-purple-400' : 'bg-blue-400'}`}></span>
                                                 </div>
                                                 <div className="overflow-hidden">
-                                                    <h3 className="font-bold text-white text-base truncate">{p.name}</h3>
+                                                    <h3 className={`font-bold text-base truncate ${isCurrent ? 'text-blue-300' : 'text-white'}`}>{p.name}</h3>
                                                     <div className="flex items-center gap-2 text-xs text-gray-400">
                                                         <span className="truncate">{p.artist || "Bilinmeyen Sanatçı"}</span>
                                                         <span>•</span>
@@ -737,7 +962,43 @@
                         )}
                     </div>
 
-                    <div className="absolute bottom-8 left-0 right-0 px-6 z-20 flex justify-center">
+                    {/* ALT BAR: MİNİ OYNATICI + YENİ PROJE OLUŞTUR BUTONU */}
+                    <div className="absolute bottom-7 left-0 right-0 px-6 z-20 flex flex-col items-center gap-3">
+                        {showMiniPlayer && (
+                            <div
+                                onClick={() => setView('player')}
+                                className="mini-bar-enter w-full max-w-md glass-panel bg-[#16161c]/90 border border-white/15 rounded-2xl p-2.5 flex items-center justify-between gap-3 shadow-2xl cursor-pointer active:scale-[0.98] transition-transform relative overflow-hidden"
+                            >
+                                <div className="absolute top-0 left-0 right-0 h-[2px] bg-white/10">
+                                    <div
+                                        className="h-full bg-gradient-to-r from-blue-400 to-purple-400 transition-all duration-150"
+                                        style={{ width: `${miniProgress}%` }}
+                                    ></div>
+                                </div>
+
+                                <div className="flex items-center gap-3 overflow-hidden pl-0.5">
+                                    <div className="w-11 h-11 rounded-xl overflow-hidden shrink-0 border border-white/10">
+                                        {coverBlobUrl ? (
+                                            <img src={coverBlobUrl} alt={activeProject.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <ActiveArtComp />
+                                        )}
+                                    </div>
+                                    <div className="overflow-hidden">
+                                        <p className="text-xs font-extrabold text-white truncate">{activeProject.name}</p>
+                                        <p className="text-[11px] text-gray-400 truncate">{activeProject.artist || "Bilinmiyor"}</p>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+                                    className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center shrink-0 hover:scale-105 active:scale-90 transition-transform shadow-md mr-1"
+                                >
+                                    {isPlaying ? <Icon name="Pause" size={18} fill="currentColor" /> : <Icon name="Play" size={18} fill="currentColor" className="ml-0.5" />}
+                                </button>
+                            </div>
+                        )}
+
                         <button
                             onClick={() => setView('createProject')}
                             className="w-full max-w-md bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-4 rounded-full shadow-xl shadow-blue-950/60 flex items-center justify-center gap-2 font-bold transition-all active:scale-95 border border-white/15"
@@ -750,8 +1011,8 @@
         };
 
         // --- CREATE PROJECT WIZARD ---
-        const CreateProjectWizard = ({ setView, createNewProject, analyzeFile, effectiveApiKey }) => {
-            const [step, setStep] = useState(1);
+        const CreateProjectWizard = ({ setView, createNewProject, analyzeFile, effectiveApiKey, step, setStep }) => {
+            const [stepDir, setStepDir] = useState('next');
             const [name, setName] = useState("");
             const [artist, setArtist] = useState("");
             const [audioFile, setAudioFile] = useState(null);
@@ -760,6 +1021,11 @@
             const [customBgFile, setCustomBgFile] = useState(null);
             const [skipAI, setSkipAI] = useState(!effectiveApiKey);
             const [manualText, setManualText] = useState("");
+
+            const goStep = (target) => {
+                setStepDir(target > step ? 'next' : 'prev');
+                setStep(target);
+            };
 
             const handleFinish = async () => {
                 if (!name.trim() || !audioFile) return;
@@ -815,7 +1081,7 @@
             return (
                 <div className="fixed inset-0 bg-black flex flex-col z-30 slide-in-bottom">
                     <div className="pt-12 px-6 pb-3 flex items-center justify-between">
-                        <button onClick={() => step === 1 ? setView('projects') : setStep(1)} className="text-blue-400 flex items-center gap-1 font-semibold text-sm">
+                        <button onClick={() => step === 1 ? setView('projects') : goStep(1)} className="text-blue-400 flex items-center gap-1 font-semibold text-sm">
                             <Icon name="ChevronLeft" size={18} /> {step === 1 ? "İptal" : "Geri"}
                         </button>
                         <div className="flex gap-1.5">
@@ -835,7 +1101,7 @@
 
                     <div className="flex-1 overflow-y-auto px-6 no-scrollbar pb-36">
                         {step === 1 ? (
-                            <div className="space-y-5 fade-in">
+                            <div key="wiz-step-1" className={`space-y-5 ${stepDir === 'prev' ? 'step-slide-prev' : 'fade-in'}`}>
                                 <div>
                                     <label className="text-gray-400 text-[11px] font-bold uppercase tracking-wider ml-1 mb-2 block">Ses Dosyası *</label>
                                     <button
@@ -850,7 +1116,7 @@
                                         <span className="text-sm font-semibold text-gray-200 truncate max-w-[85%]">
                                             {audioFile ? audioFile.name : "MP3, WAV, M4A veya OGG Seç"}
                                         </span>
-                                        {audioFile && <span className="text-[11px] text-blue-400">{(audioFile.size / (1024 * 1024)).toFixed(1)} MB • Cihaza kaydedilecek</span>}
+                                        {audioFile && <span className="text-[11px] text-blue-400">{(audioFile.size / (1024 * 1024)).toFixed(1)} MB • Telefona kaydedilecek</span>}
                                     </button>
                                     <input
                                         type="file"
@@ -897,7 +1163,7 @@
                                 </div>
                             </div>
                         ) : (
-                            <div className="space-y-6 fade-in">
+                            <div key="wiz-step-2" className="space-y-6 step-slide-next">
                                 <div>
                                     <label className="text-gray-400 text-[11px] font-bold uppercase tracking-wider ml-1 mb-2 block">Görünüm Modu</label>
                                     <div className="grid grid-cols-2 gap-3">
@@ -986,7 +1252,7 @@
 
                     <div className="absolute bottom-8 left-0 right-0 px-6 z-20">
                         <button
-                            onClick={step === 1 ? () => setStep(2) : handleFinish}
+                            onClick={step === 1 ? () => goStep(2) : handleFinish}
                             disabled={!name.trim() || !audioFile}
                             className={`w-full py-4 rounded-full font-bold text-base transition-all ${(!name.trim() || !audioFile) ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 text-white shadow-xl shadow-blue-950'}`}
                         >
@@ -997,9 +1263,20 @@
             );
         };
 
-        // --- SETTINGS VIEW ---
+        // --- SETTINGS VIEW (YENİ GEMINI MODELLERİ + ARKA PLAN RENK AYARLARI) ---
         const SettingsView = ({ setView, settings, saveSettings }) => {
-            const presets = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3-flash-preview"];
+            const presets = [
+                "gemini-flash-lite-latest",
+                "gemini-3.5-flash",
+                "gemini-3.8-flash",
+                "gemini-4-hydrogen"
+            ];
+
+            const c1 = settings.bgColor1 || "#3b82f6";
+            const c2 = settings.bgColor2 || "#8b5cf6";
+            const rgb1 = hexToRgb(c1, "59, 130, 246");
+            const rgb2 = hexToRgb(c2, "139, 92, 246");
+
             return (
                 <div className="fixed inset-0 bg-black flex flex-col z-50 slide-in-right w-full h-full">
                     <div className="pt-12 px-6 pb-5 flex items-center bg-black/80 backdrop-blur-md z-20 border-b border-white/10">
@@ -1009,7 +1286,7 @@
                         <h2 className="absolute left-0 right-0 text-center text-lg font-bold text-white pointer-events-none">Stüdyo Ayarları</h2>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                    <div className="flex-1 overflow-y-auto p-6 space-y-6 pb-20 no-scrollbar">
                         <div className="glass-panel p-5 rounded-3xl space-y-5">
                             <div className="flex items-center gap-2.5 text-white font-bold text-base">
                                 <Icon className="text-blue-400" name="Sparkles" size={20} /> Gemini Yapılandırması
@@ -1047,6 +1324,72 @@
                                 </div>
                             </div>
                         </div>
+
+                        {/* LYRICS ARKA PLAN RENK AYARLARI */}
+                        <div className="glass-panel p-5 rounded-3xl space-y-4">
+                            <div className="flex items-center gap-2.5 text-white font-bold text-base">
+                                <Icon className="text-purple-400" name="Palette" size={20} /> Lyrics Arka Plan Renkleri
+                            </div>
+
+                            <div
+                                className="w-full h-24 rounded-2xl border border-white/10 flex flex-col items-center justify-center p-3 text-center transition-all"
+                                style={{
+                                    background: `radial-gradient(circle at 25% 30%, rgba(${rgb1}, 0.42) 0%, rgba(${rgb2}, 0.28) 45%, #050507 85%)`
+                                }}
+                            >
+                                <span className="text-xs font-extrabold text-white tracking-tight">Canlı Arka Plan Önizlemesi</span>
+                                <span className="text-[10px] text-gray-300/80 mt-0.5 font-mono">{c1.toUpperCase()} • {c2.toUpperCase()}</span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <label className="bg-[#111114] p-3 rounded-2xl border border-white/10 flex items-center justify-between cursor-pointer">
+                                    <div>
+                                        <span className="text-[10px] text-gray-400 font-bold uppercase block">1. Renk</span>
+                                        <span className="text-xs font-mono text-white">{c1.toUpperCase()}</span>
+                                    </div>
+                                    <input
+                                        type="color"
+                                        value={c1}
+                                        onChange={(e) => saveSettings({ ...settings, bgColor1: e.target.value })}
+                                        className="w-9 h-9"
+                                    />
+                                </label>
+                                <label className="bg-[#111114] p-3 rounded-2xl border border-white/10 flex items-center justify-between cursor-pointer">
+                                    <div>
+                                        <span className="text-[10px] text-gray-400 font-bold uppercase block">2. Renk</span>
+                                        <span className="text-xs font-mono text-white">{c2.toUpperCase()}</span>
+                                    </div>
+                                    <input
+                                        type="color"
+                                        value={c2}
+                                        onChange={(e) => saveSettings({ ...settings, bgColor2: e.target.value })}
+                                        className="w-9 h-9"
+                                    />
+                                </label>
+                            </div>
+
+                            <div>
+                                <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-2">Hazır Renk Temaları</span>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {COLOR_PRESETS.map(p => {
+                                        const active = c1.toLowerCase() === p.c1 && c2.toLowerCase() === p.c2;
+                                        return (
+                                            <button
+                                                key={p.name}
+                                                onClick={() => saveSettings({ ...settings, bgColor1: p.c1, bgColor2: p.c2 })}
+                                                className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 transition-all ${active ? 'bg-white/10 border-white/35 text-white' : 'bg-[#111114] border-white/5 text-gray-400'}`}
+                                            >
+                                                <span
+                                                    className="w-5 h-5 rounded-full shrink-0 border border-white/20"
+                                                    style={{ background: `linear-gradient(135deg, ${p.c1}, ${p.c2})` }}
+                                                ></span>
+                                                <span className="text-[11px] font-semibold truncate">{p.name}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             );
@@ -1055,7 +1398,8 @@
         // --- EDITOR DRAWER ---
         const EditorDrawer = ({
             isOpen, onClose, lyrics, setLyrics, currentProject,
-            updateProjectAndSave, startManualSync, onReanalyze, hasApiKey
+            updateProjectAndSave, startManualSync, onReanalyze, hasApiKey,
+            hasCover, onSelectCover, onRemoveCover
         }) => {
             const [localTitle, setLocalTitle] = useState("");
             const [localArtist, setLocalArtist] = useState("");
@@ -1112,8 +1456,11 @@
 
             return (
                 <>
-                    {isOpen && <div onClick={handleSaveAndClose} className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[55] fade-in"></div>}
-                    <div className={`fixed inset-y-0 left-0 w-full max-w-md bg-[#121215] border-r border-white/10 z-[60] flex flex-col transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                    <div
+                        onClick={handleSaveAndClose}
+                        className={`fixed inset-0 bg-black/65 backdrop-blur-xs z-[55] transition-opacity duration-300 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+                    ></div>
+                    <div className={`fixed inset-y-0 left-0 w-full max-w-md bg-[#121215] border-r border-white/10 z-[60] flex flex-col transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                         <div className="pt-11 px-5 pb-4 border-b border-white/10 flex justify-between items-center bg-[#121215] shrink-0">
                             <h2 className="text-lg font-bold text-white flex items-center gap-2">
                                 <Icon className="text-blue-400" name="SlidersHorizontal" size={18} /> Stüdyo Editörü
@@ -1143,6 +1490,16 @@
                                     <select value={localFont} onChange={e => setLocalFont(e.target.value)} className="bg-[#1c1c21] text-white text-xs p-2.5 rounded-xl border border-white/10">
                                         {FONTS.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                                     </select>
+                                </div>
+                                <div className="flex gap-2 pt-1">
+                                    <button onClick={onSelectCover} className="flex-1 bg-white/5 hover:bg-white/10 text-gray-200 py-2 px-3 rounded-xl text-xs font-semibold border border-white/10 flex items-center justify-center gap-1.5">
+                                        <Icon name="Image" size={14} /> {hasCover ? "Kapağı Değiştir" : "Kapak Seç"}
+                                    </button>
+                                    {hasCover && (
+                                        <button onClick={onRemoveCover} className="bg-red-500/15 hover:bg-red-500/25 text-red-300 py-2 px-3 rounded-xl text-xs font-semibold border border-red-500/30 flex items-center justify-center gap-1.5">
+                                            <Icon name="Trash2" size={14} /> Kapağı Kaldır
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
@@ -1233,8 +1590,15 @@
                 try { return JSON.parse(localStorage.getItem(STORAGE_KEY_PROJECTS) || '[]'); } catch { return []; }
             });
             const [settings, setSettings] = useState(() => {
-                try { return JSON.parse(localStorage.getItem(STORAGE_KEY_SETTINGS) || '{"apiKey":"", "modelName":"gemini-2.5-flash"}'); }
-                catch { return { apiKey: "", modelName: "gemini-2.5-flash" }; }
+                try {
+                    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY_SETTINGS) || 'null');
+                    if (!parsed) return DEFAULT_SETTINGS;
+                    const oldModels = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3-flash-preview"];
+                    const migratedModel = oldModels.includes(parsed.modelName) ? "gemini-3.5-flash" : (parsed.modelName || "gemini-3.5-flash");
+                    return { ...DEFAULT_SETTINGS, ...parsed, modelName: migratedModel };
+                } catch {
+                    return DEFAULT_SETTINGS;
+                }
             });
 
             const saveSettings = (newSettings) => {
@@ -1242,16 +1606,23 @@
                 localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(newSettings));
             };
 
+            // Projeler değiştikçe hem localStorage hem telefonun kalıcı yedek dosyasına yaz
             useEffect(() => {
-                localStorage.setItem(STORAGE_KEY_PROJECTS, JSON.stringify(projects));
+                const serialized = JSON.stringify(projects);
+                localStorage.setItem(STORAGE_KEY_PROJECTS, serialized);
+                if (window.LyricalNative) {
+                    window.LyricalNative.saveBackupJson(serialized);
+                }
             }, [projects]);
 
             const [view, setView] = useState('projects');
+            const [wizardStep, setWizardStep] = useState(1);
             const [currentProject, setCurrentProject] = useState(null);
             const [manualSyncMode, setManualSyncMode] = useState(false);
             const [fileBlob, setFileBlob] = useState(null);
             const [videoBlob, setVideoBlob] = useState(null);
             const [coverBlobUrl, setCoverBlobUrl] = useState(null);
+            const [coverVersion, setCoverVersion] = useState(0);
             const [isPlaying, setIsPlaying] = useState(false);
             const [currentTime, setCurrentTime] = useState(0);
             const [duration, setDuration] = useState(0);
@@ -1282,6 +1653,30 @@
                 currentProjectIdRef.current = currentProject?.id || null;
             }, [currentProject]);
 
+            // Telefonun kalıcı yedek dosyasından (Download/LyricalAI/projects_backup.json) projeleri geri yükle
+            const restoreProjectsFromPhone = useCallback(() => {
+                if (!window.LyricalNative) return;
+                window.LyricalNative.requestPermission();
+                window.LyricalNative.loadBackupJson((rawJson) => {
+                    try {
+                        const backedUp = JSON.parse(rawJson || '[]');
+                        if (Array.isArray(backedUp) && backedUp.length > 0) {
+                            setProjects(prev => {
+                                const existingIds = new Set(prev.map(p => p.id));
+                                const missing = backedUp.filter(p => p && p.id && !existingIds.has(p.id));
+                                return missing.length > 0 ? [...prev, ...missing] : prev;
+                            });
+                        }
+                    } catch (e) {}
+                });
+            }, []);
+
+            useEffect(() => {
+                document.addEventListener('deviceready', restoreProjectsFromPhone, false);
+                if (window.LyricalNative) restoreProjectsFromPhone();
+                return () => document.removeEventListener('deviceready', restoreProjectsFromPhone);
+            }, [restoreProjectsFromPhone]);
+
             const durumBannerGuncelle = useCallback((mesaj, tip = 'bekle', autoHideMs = 0) => {
                 if (bannerTimeoutRef.current) {
                     clearTimeout(bannerTimeoutRef.current);
@@ -1309,6 +1704,8 @@
 
             const effectiveApiKey = settings.apiKey;
             const currentFont = currentProject ? FONTS.find(f => f.id === currentProject.fontId) || FONTS[0] : FONTS[0];
+            const rgb1 = hexToRgb(settings.bgColor1, "59, 130, 246");
+            const rgb2 = hexToRgb(settings.bgColor2, "139, 92, 246");
 
             const formatTime = (seconds) => {
                 if (!seconds || !isFinite(seconds) || seconds < 0) return "0:00";
@@ -1349,15 +1746,15 @@
                 let resolvedCover = initialCoverUrl;
 
                 if (!resolvedAudio) {
-                    const storedAudio = await getMediaBlob(`${project.id}_audio`);
+                    const storedAudio = await getMediaBlob(`${project.id}_audio`, project.fileType || 'audio/mpeg');
                     if (storedAudio) resolvedAudio = URL.createObjectURL(storedAudio);
                 }
                 if (!resolvedVideo && project.themeMode === 'nostalgic') {
-                    const storedVideo = await getMediaBlob(`${project.id}_video`);
+                    const storedVideo = await getMediaBlob(`${project.id}_video`, 'video/mp4');
                     if (storedVideo) resolvedVideo = URL.createObjectURL(storedVideo);
                 }
                 if (!resolvedCover) {
-                    const storedCover = await getMediaBlob(`${project.id}_cover`);
+                    const storedCover = await getMediaBlob(`${project.id}_cover`, 'image/jpeg');
                     if (storedCover) resolvedCover = URL.createObjectURL(storedCover);
                 }
 
@@ -1376,6 +1773,15 @@
                 e.stopPropagation();
                 if (confirm("Bu projeyi ve yerel medya dosyalarını silmek istediğine emin misin?")) {
                     await deleteProjectMedia(projectId);
+                    if (currentProject?.id === projectId) {
+                        if (audioRef.current) audioRef.current.pause();
+                        setIsPlaying(false);
+                        setCurrentProject(null);
+                        setFileBlob(null);
+                        setVideoBlob(null);
+                        setCoverBlobUrl(null);
+                        if (window.LyricalNative) window.LyricalNative.clearMediaNotification();
+                    }
                     setProjects(prev => prev.filter(p => p.id !== projectId));
                 }
             };
@@ -1388,22 +1794,176 @@
                 setProjects(prev => prev.map(p => p.id === updated.id ? updated : p));
             };
 
-            const handleBackToMenu = () => {
-                if (currentProject) updateProjectAndSave({ lyrics });
-                if (audioRef.current) {
-                    audioRef.current.pause();
-                    setIsPlaying(false);
+            // Lyrics ekranından geri basınca müziği DURDURMADAN ana ekrana dön (mini oynatıcı aktif kalır)
+            const handleBackToMenu = useCallback(() => {
+                if (currentProject) {
+                    const sorted = sortLyricsByTime(lyrics);
+                    const updated = { ...currentProject, lyrics: sorted };
+                    setCurrentProject(updated);
+                    setProjects(prev => prev.map(p => p.id === updated.id ? updated : p));
                 }
                 setView('projects');
-            };
+            }, [currentProject, lyrics]);
 
+            // Kapak değiştirme ve kaldırma
             const handleCoverChange = async (e) => {
                 const file = e.target.files?.[0];
                 if (!file || !currentProject) return;
                 await saveMediaBlob(`${currentProject.id}_cover`, file);
                 setCoverBlobUrl(URL.createObjectURL(file));
+                setCoverVersion(v => v + 1);
                 e.target.value = "";
             };
+
+            const handleRemoveCover = async (e) => {
+                if (e) e.stopPropagation();
+                if (!currentProject) return;
+                await deleteMediaKey(`${currentProject.id}_cover`);
+                setCoverBlobUrl(null);
+                setCoverVersion(v => v + 1);
+            };
+
+            // --- KİLİT EKRANI & BİLDİRİM MEDYA KONTROLÜ (MEDIA SESSION + NATIVE NOTIFICATION) ---
+            const togglePlay = useCallback(() => {
+                if (!audioRef.current || !fileBlob) return;
+                setupAudioAnalyser();
+                if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
+                    audioCtxRef.current.resume();
+                }
+                if (isPlaying) {
+                    audioRef.current.pause();
+                    setIsPlaying(false);
+                } else {
+                    audioRef.current.play()
+                        .then(() => setIsPlaying(true))
+                        .catch(() => durumBannerGuncelle("ses oynatılamadı. lütfen dosyayı tekrar seç.", "hata"));
+                }
+            }, [fileBlob, isPlaying, setupAudioAnalyser, durumBannerGuncelle]);
+
+            const seekAudio = useCallback((ms) => {
+                if (!audioRef.current || !fileBlob) return;
+                const maxMs = (duration || 0) * 1000;
+                const clampedMs = Math.max(0, maxMs > 0 ? Math.min(ms, maxMs) : ms);
+                audioRef.current.currentTime = clampedMs / 1000;
+                setCurrentTime(clampedMs);
+                if (videoRef.current && videoRef.current.duration) {
+                    videoRef.current.currentTime = (clampedMs / 1000) % videoRef.current.duration;
+                }
+                userHasScrolled.current = false;
+                setSyncState(prev => ({ ...prev, visible: false }));
+            }, [fileBlob, duration]);
+
+            // Native medya bildirimi ve Web MediaSession senkronizasyonu
+            useEffect(() => {
+                let cancelled = false;
+                const syncMediaControls = async () => {
+                    if (!currentProject || !fileBlob) {
+                        if (window.LyricalNative) window.LyricalNative.clearMediaNotification();
+                        return;
+                    }
+
+                    let coverDataUrl = "";
+                    const coverBlob = await getMediaBlob(`${currentProject.id}_cover`, 'image/jpeg');
+                    if (coverBlob) {
+                        coverDataUrl = await blobToDataUrl(coverBlob);
+                    }
+                    if (cancelled) return;
+
+                    if ('mediaSession' in navigator) {
+                        try {
+                            navigator.mediaSession.metadata = new MediaMetadata({
+                                title: currentProject.name || "LyricalAI",
+                                artist: currentProject.artist || "Bilinmiyor",
+                                album: "LyricalAI Studio",
+                                artwork: coverDataUrl ? [{ src: coverDataUrl, sizes: '512x512', type: 'image/jpeg' }] : []
+                            });
+                            navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+                            navigator.mediaSession.setActionHandler('play', () => {
+                                if (audioRef.current && audioRef.current.paused) togglePlay();
+                            });
+                            navigator.mediaSession.setActionHandler('pause', () => {
+                                if (audioRef.current && !audioRef.current.paused) togglePlay();
+                            });
+                            navigator.mediaSession.setActionHandler('seekbackward', () => {
+                                if (audioRef.current) seekAudio((audioRef.current.currentTime * 1000) - 5000);
+                            });
+                            navigator.mediaSession.setActionHandler('seekforward', () => {
+                                if (audioRef.current) seekAudio((audioRef.current.currentTime * 1000) + 5000);
+                            });
+                            navigator.mediaSession.setActionHandler('previoustrack', () => {
+                                if (audioRef.current) seekAudio((audioRef.current.currentTime * 1000) - 5000);
+                            });
+                            navigator.mediaSession.setActionHandler('nexttrack', () => {
+                                if (audioRef.current) seekAudio((audioRef.current.currentTime * 1000) + 5000);
+                            });
+                        } catch (e) {}
+                    }
+
+                    if (window.LyricalNative) {
+                        window.LyricalNative.updateMediaNotification(
+                            currentProject.name || "LyricalAI",
+                            currentProject.artist || "Bilinmiyor",
+                            isPlaying,
+                            coverDataUrl
+                        );
+                    }
+                };
+                syncMediaControls();
+                return () => { cancelled = true; };
+            }, [currentProject, fileBlob, isPlaying, coverVersion, togglePlay, seekAudio]);
+
+            // Kilit ekranı / bildirim tuşlarından gelen native aksiyonları dinle
+            useEffect(() => {
+                const onMediaAction = (e) => {
+                    const cmd = e.detail;
+                    if (!audioRef.current || !fileBlob) return;
+                    if (cmd === 'toggle') {
+                        togglePlay();
+                    } else if (cmd === 'backward') {
+                        seekAudio((audioRef.current.currentTime * 1000) - 5000);
+                    } else if (cmd === 'forward') {
+                        seekAudio((audioRef.current.currentTime * 1000) + 5000);
+                    }
+                };
+                window.addEventListener('lyrical-media-action', onMediaAction);
+                return () => window.removeEventListener('lyrical-media-action', onMediaAction);
+            }, [fileBlob, togglePlay, seekAudio]);
+
+            // --- ANDROID SİSTEM GERİ BUTONU DESTEĞİ ---
+            useEffect(() => {
+                const onBackButton = (e) => {
+                    if (e && e.preventDefault) e.preventDefault();
+                    if (manualSyncMode) {
+                        setManualSyncMode(false);
+                        return;
+                    }
+                    if (isLeftMenuOpen) {
+                        setIsLeftMenuOpen(false);
+                        return;
+                    }
+                    if (view === 'settings') {
+                        setView('projects');
+                        return;
+                    }
+                    if (view === 'createProject') {
+                        if (wizardStep > 1) {
+                            setWizardStep(1);
+                        } else {
+                            setView('projects');
+                        }
+                        return;
+                    }
+                    if (view === 'player') {
+                        handleBackToMenu();
+                        return;
+                    }
+                    if (navigator.app && navigator.app.exitApp) {
+                        navigator.app.exitApp();
+                    }
+                };
+                document.addEventListener('backbutton', onBackButton, false);
+                return () => document.removeEventListener('backbutton', onBackButton, false);
+            }, [manualSyncMode, isLeftMenuOpen, view, wizardStep, handleBackToMenu]);
 
             useEffect(() => {
                 const freqData = new Uint8Array(32);
@@ -1496,35 +2056,6 @@
                 }
             }, [activeIndex, view, isPlaying, currentProject]);
 
-            const togglePlay = useCallback(() => {
-                if (!audioRef.current || !fileBlob) return;
-                setupAudioAnalyser();
-                if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
-                    audioCtxRef.current.resume();
-                }
-                if (isPlaying) {
-                    audioRef.current.pause();
-                    setIsPlaying(false);
-                } else {
-                    audioRef.current.play()
-                        .then(() => setIsPlaying(true))
-                        .catch(() => durumBannerGuncelle("ses oynatılamadı. lütfen dosyayı tekrar seç.", "hata"));
-                }
-            }, [fileBlob, isPlaying, setupAudioAnalyser, durumBannerGuncelle]);
-
-            const seekAudio = useCallback((ms) => {
-                if (!audioRef.current || !fileBlob) return;
-                const maxMs = (duration || 0) * 1000;
-                const clampedMs = Math.max(0, maxMs > 0 ? Math.min(ms, maxMs) : ms);
-                audioRef.current.currentTime = clampedMs / 1000;
-                setCurrentTime(clampedMs);
-                if (videoRef.current && videoRef.current.duration) {
-                    videoRef.current.currentTime = (clampedMs / 1000) % videoRef.current.duration;
-                }
-                userHasScrolled.current = false;
-                setSyncState(prev => ({ ...prev, visible: false }));
-            }, [fileBlob, duration]);
-
             const handleReupload = async (e) => {
                 const file = e.target.files[0];
                 if (!file || !currentProject) return;
@@ -1536,6 +2067,7 @@
                     if (embeddedCover) {
                         await saveMediaBlob(`${currentProject.id}_cover`, embeddedCover);
                         setCoverBlobUrl(URL.createObjectURL(embeddedCover));
+                        setCoverVersion(v => v + 1);
                     }
                 }
                 setStatusBanner(prev => ({ ...prev, visible: false }));
@@ -1568,7 +2100,7 @@
                 const controller = new AbortController();
                 aktifAbortControllerRef.current = controller;
 
-                const seciliModel = settings.modelName || "gemini-2.5-flash";
+                const seciliModel = settings.modelName || "gemini-3.5-flash";
                 const activeMode = modeOverride || projectToUpdate.themeMode;
 
                 let wakeLock = null;
@@ -1743,7 +2275,7 @@ Return ONLY valid JSON matching this exact schema:
 
             const handleReanalyzeFromEditor = async () => {
                 if (!currentProject) return;
-                const storedAudio = await getMediaBlob(`${currentProject.id}_audio`);
+                const storedAudio = await getMediaBlob(`${currentProject.id}_audio`, currentProject.fileType || 'audio/mpeg');
                 if (!storedAudio) {
                     durumBannerGuncelle("yeniden analiz için ses dosyasını tekrar seçmelisin.", "hata");
                     return;
@@ -1836,15 +2368,29 @@ Return ONLY valid JSON matching this exact schema:
                         startManualSync={() => { setIsLeftMenuOpen(false); setManualSyncMode(true); }}
                         onReanalyze={handleReanalyzeFromEditor}
                         hasApiKey={Boolean(effectiveApiKey)}
+                        hasCover={Boolean(coverBlobUrl)}
+                        onSelectCover={() => coverFileInputRef.current?.click()}
+                        onRemoveCover={handleRemoveCover}
                     />
 
                     {view === 'projects' && (
                         <ProjectsView
                             projects={projects}
-                            setView={setView}
+                            setView={(v) => {
+                                if (v === 'createProject') setWizardStep(1);
+                                setView(v);
+                            }}
                             loadProject={loadProject}
                             deleteProject={deleteProject}
                             effectiveApiKey={effectiveApiKey}
+                            activeProject={currentProject}
+                            hasAudioBlob={Boolean(fileBlob)}
+                            isPlaying={isPlaying}
+                            togglePlay={togglePlay}
+                            coverBlobUrl={coverBlobUrl}
+                            currentTime={currentTime}
+                            duration={duration}
+                            coverVersion={coverVersion}
                         />
                     )}
 
@@ -1854,6 +2400,8 @@ Return ONLY valid JSON matching this exact schema:
                             createNewProject={createNewProject}
                             analyzeFile={analyzeFile}
                             effectiveApiKey={effectiveApiKey}
+                            step={wizardStep}
+                            setStep={setWizardStep}
                         />
                     )}
 
@@ -1866,8 +2414,8 @@ Return ONLY valid JSON matching this exact schema:
                     )}
 
                     {/* PLAYER STAGE */}
-                    <div className={`fixed inset-0 bg-black transition-transform duration-500 ${view === 'player' ? 'translate-x-0' : 'translate-x-full'}`}>
-                        {currentProject && view === 'player' && (
+                    <div className={`fixed inset-0 bg-black transition-all duration-300 ease-out ${view === 'player' ? 'translate-x-0 opacity-100 pointer-events-auto' : 'translate-x-full opacity-0 pointer-events-none'}`}>
+                        {currentProject && (
                             <>
                                 {currentProject.themeMode === 'nostalgic' ? (
                                     <div className="absolute inset-0 z-0 overflow-hidden bg-black">
@@ -1881,7 +2429,12 @@ Return ONLY valid JSON matching this exact schema:
                                                 playsInline
                                             />
                                         ) : (
-                                            <div className="w-full h-full bg-gradient-to-br from-purple-950/40 via-black to-indigo-950/40"></div>
+                                            <div
+                                                className="w-full h-full"
+                                                style={{
+                                                    background: `linear-gradient(135deg, rgba(${rgb1}, 0.28) 0%, #000000 50%, rgba(${rgb2}, 0.28) 100%)`
+                                                }}
+                                            ></div>
                                         )}
                                         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/70"></div>
                                         <div className="absolute top-24 left-6 z-20">
@@ -1897,7 +2450,7 @@ Return ONLY valid JSON matching this exact schema:
                                     <div
                                         className="absolute inset-0 z-0 transition-transform duration-150"
                                         style={{
-                                            background: `radial-gradient(circle at 20% 25%, rgba(59, 130, 246, ${0.14 + bassPulse * 0.22}) 0%, rgba(139, 92, 246, ${0.08 + bassPulse * 0.14}) 38%, #000000 75%)`,
+                                            background: `radial-gradient(circle at 20% 25%, rgba(${rgb1}, ${0.18 + bassPulse * 0.24}) 0%, rgba(${rgb2}, ${0.12 + bassPulse * 0.16}) 40%, #000000 76%)`,
                                             transform: `scale(${1 + bassPulse * 0.04})`
                                         }}
                                     ></div>
@@ -1928,12 +2481,23 @@ Return ONLY valid JSON matching this exact schema:
                                 {currentProject.themeMode === 'classic' && (
                                     <div className="absolute top-24 left-6 right-6 z-20">
                                         <div className="flex items-center gap-4">
-                                            <div
-                                                onClick={() => coverFileInputRef.current?.click()}
-                                                title="Kapak değiştirmek için dokun"
-                                                className="w-16 h-16 rounded-2xl overflow-hidden shadow-2xl border border-white/10 shrink-0 cursor-pointer active:scale-95 transition-transform"
-                                            >
-                                                {renderAlbumArt()}
+                                            <div className="relative shrink-0">
+                                                <div
+                                                    onClick={() => coverFileInputRef.current?.click()}
+                                                    title="Kapak değiştirmek için dokun"
+                                                    className="w-16 h-16 rounded-2xl overflow-hidden shadow-2xl border border-white/10 cursor-pointer active:scale-95 transition-transform"
+                                                >
+                                                    {renderAlbumArt()}
+                                                </div>
+                                                {coverBlobUrl && (
+                                                    <button
+                                                        onClick={handleRemoveCover}
+                                                        title="Kapağı kaldır"
+                                                        className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-red-600/95 hover:bg-red-500 text-white border border-white/25 flex items-center justify-center shadow-lg active:scale-90 transition-transform z-10"
+                                                    >
+                                                        <Icon name="X" size={12} />
+                                                    </button>
+                                                )}
                                             </div>
                                             <div className="overflow-hidden">
                                                 <h1 className="text-xl font-extrabold text-white truncate">{currentProject.name}</h1>
@@ -1957,7 +2521,16 @@ Return ONLY valid JSON matching this exact schema:
                                                 onClick={() => coverFileInputRef.current?.click()}
                                             >
                                                 {coverBlobUrl ? (
-                                                    <img id="song-cover-img" src={coverBlobUrl} alt="şarkı kapağı" />
+                                                    <>
+                                                        <img id="song-cover-img" src={coverBlobUrl} alt="şarkı kapağı" />
+                                                        <button
+                                                            onClick={handleRemoveCover}
+                                                            title="Kapağı kaldır"
+                                                            className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-black/75 hover:bg-red-600 text-white border border-white/20 backdrop-blur-md flex items-center justify-center shadow-lg active:scale-90 transition-all z-10"
+                                                        >
+                                                            <Icon name="X" size={15} />
+                                                        </button>
+                                                    </>
                                                 ) : (
                                                     <div id="song-cover-placeholder" className="cover-placeholder">
                                                         <span>🎵</span>
@@ -1986,7 +2559,15 @@ Return ONLY valid JSON matching this exact schema:
                                                         onClick={() => seekAudio(line.ms)}
                                                         className={`relative transition-all duration-300 origin-left cursor-pointer pl-4 ${isActive ? 'scale-[1.04] opacity-100' : isPast ? 'opacity-35 hover:opacity-70' : 'opacity-45 hover:opacity-80'}`}
                                                     >
-                                                        {isActive && <div className="active-line-bar"></div>}
+                                                        {isActive && (
+                                                            <div
+                                                                className="active-line-bar"
+                                                                style={{
+                                                                    background: `linear-gradient(180deg, ${settings.bgColor1 || '#3b82f6'}, ${settings.bgColor2 || '#8b5cf6'})`,
+                                                                    boxShadow: `0 0 12px rgba(${rgb1}, 0.75)`
+                                                                }}
+                                                            ></div>
+                                                        )}
                                                         <p className={`text-2xl md:text-3xl font-extrabold leading-snug tracking-tight ${isActive ? 'text-white drop-shadow-[0_2px_12px_rgba(255,255,255,0.25)]' : 'text-gray-300'}`}>
                                                             {line.text}
                                                         </p>
