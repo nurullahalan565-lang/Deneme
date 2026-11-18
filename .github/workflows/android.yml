@@ -44,12 +44,12 @@ jobs:
 
           fs.writeFileSync("plugins_src/lyrical-native/package.json", JSON.stringify({
             name: "cordova-plugin-lyrical-native",
-            version: "1.0.0",
+            version: "2.0.0",
             cordova: { id: "cordova-plugin-lyrical-native", platforms: ["android"] }
           }, null, 2));
 
           fs.writeFileSync("plugins_src/lyrical-native/plugin.xml", `<?xml version="1.0" encoding="UTF-8"?>
-          <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android" id="cordova-plugin-lyrical-native" version="1.0.0">
+          <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android" id="cordova-plugin-lyrical-native" version="2.0.0">
             <name>LyricalNative</name>
             <js-module src="www/lyricalNative.js" name="LyricalNative">
               <clobbers target="window.LyricalNative" />
@@ -64,6 +64,7 @@ jobs:
                 <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
                 <uses-permission android:name="android.permission.WAKE_LOCK" />
                 <uses-permission android:name="android.permission.VIBRATE" />
+                <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
               </config-file>
               <source-file src="src/android/LyricalNative.java" target-dir="src/com/nurullah/lyricalai" />
             </platform>
@@ -74,7 +75,26 @@ jobs:
             requestPermission: function() { exec(null, null, "LyricalNative", "requestPermission", []); },
             notify: function(title, body) { exec(null, null, "LyricalNative", "notify", [title, body]); },
             acquireWakeLock: function() { exec(null, null, "LyricalNative", "acquireWakeLock", []); },
-            releaseWakeLock: function() { exec(null, null, "LyricalNative", "releaseWakeLock", []); }
+            releaseWakeLock: function() { exec(null, null, "LyricalNative", "releaseWakeLock", []); },
+            updateMediaNotification: function(title, artist, isPlaying, coverBase64) {
+              exec(null, null, "LyricalNative", "updateMediaNotification", [title, artist, !!isPlaying, coverBase64 || ""]);
+            },
+            clearMediaNotification: function() { exec(null, null, "LyricalNative", "clearMediaNotification", []); },
+            saveMediaChunk: function(fileName, base64Chunk, append, cb, errCb) {
+              exec(cb || null, errCb || null, "LyricalNative", "saveMediaChunk", [fileName, base64Chunk, !!append]);
+            },
+            readMediaChunk: function(fileName, offset, length, cb, errCb) {
+              exec(cb || null, errCb || null, "LyricalNative", "readMediaChunk", [fileName, offset, length]);
+            },
+            deleteMediaFile: function(fileName) {
+              exec(null, null, "LyricalNative", "deleteMediaFile", [fileName]);
+            },
+            saveBackupJson: function(jsonStr) {
+              exec(null, null, "LyricalNative", "saveBackupJson", [jsonStr]);
+            },
+            loadBackupJson: function(cb) {
+              exec(cb || null, null, "LyricalNative", "loadBackupJson", []);
+            }
           };`);
 
           fs.writeFileSync("plugins_src/lyrical-native/src/android/LyricalNative.java", `package com.nurullah.lyricalai;
@@ -82,25 +102,100 @@ jobs:
           import android.app.NotificationChannel;
           import android.app.NotificationManager;
           import android.app.PendingIntent;
+          import android.content.BroadcastReceiver;
           import android.content.Context;
           import android.content.Intent;
+          import android.content.IntentFilter;
           import android.content.pm.PackageManager;
+          import android.graphics.Bitmap;
+          import android.graphics.BitmapFactory;
           import android.os.Build;
+          import android.os.Environment;
           import android.os.PowerManager;
+          import android.util.Base64;
           import org.apache.cordova.CallbackContext;
           import org.apache.cordova.CordovaPlugin;
           import org.json.JSONArray;
           import org.json.JSONException;
+          import org.json.JSONObject;
+          import java.io.File;
+          import java.io.FileInputStream;
+          import java.io.FileOutputStream;
+          import java.nio.charset.StandardCharsets;
 
           public class LyricalNative extends CordovaPlugin {
             private static final String CHANNEL_ID = "lyrical_ai_channel";
+            private static final String MEDIA_CHANNEL_ID = "lyrical_media_channel";
+            private static final int MEDIA_NOTIF_ID = 56501;
+            private static final String ACTION_MEDIA_CONTROL = "com.nurullah.lyricalai.MEDIA_CONTROL";
             private PowerManager.WakeLock wakeLock;
+            private BroadcastReceiver mediaReceiver;
+
+            @Override
+            protected void pluginInitialize() {
+              super.pluginInitialize();
+              registerMediaReceiver();
+            }
+
+            private void registerMediaReceiver() {
+              if (mediaReceiver != null) return;
+              Context ctx = cordova.getActivity().getApplicationContext();
+              mediaReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                  String cmd = intent.getStringExtra("cmd");
+                  if (cmd != null && webView != null) {
+                    final String js = "window.dispatchEvent(new CustomEvent(\\"lyrical-media-action\\", { detail: \\"" + cmd + "\\" }));";
+                    cordova.getActivity().runOnUiThread(() -> webView.loadUrl("javascript:" + js));
+                  }
+                }
+              };
+              IntentFilter filter = new IntentFilter(ACTION_MEDIA_CONTROL);
+              if (Build.VERSION.SDK_INT >= 33) {
+                ctx.registerReceiver(mediaReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+              } else {
+                ctx.registerReceiver(mediaReceiver, filter);
+              }
+            }
+
+            @Override
+            public void onDestroy() {
+              if (mediaReceiver != null) {
+                try { cordova.getActivity().getApplicationContext().unregisterReceiver(mediaReceiver); } catch (Exception ignored) {}
+                mediaReceiver = null;
+              }
+              super.onDestroy();
+            }
+
+            private File getMusicStorageDir() {
+              File musicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
+              File appDir = new File(musicDir, "LyricalAI");
+              if (!appDir.exists()) appDir.mkdirs();
+              if (appDir.exists() && appDir.canWrite()) return appDir;
+              File fallback = new File(cordova.getActivity().getExternalFilesDir(null), "LyricalAI");
+              if (!fallback.exists()) fallback.mkdirs();
+              return fallback;
+            }
+
+            private File getBackupJsonFile() {
+              File dlDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+              File appDlDir = new File(dlDir, "LyricalAI");
+              if (!appDlDir.exists()) appDlDir.mkdirs();
+              if (appDlDir.exists() && appDlDir.canWrite()) return new File(appDlDir, "projects_backup.json");
+              return new File(getMusicStorageDir(), "projects_backup.json");
+            }
 
             @Override
             public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
               if ("requestPermission".equals(action)) {
-                if (Build.VERSION.SDK_INT >= 33 && cordova.getActivity().checkSelfPermission("android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED) {
-                  cordova.requestPermission(this, 565, "android.permission.POST_NOTIFICATIONS");
+                if (Build.VERSION.SDK_INT >= 33) {
+                  if (cordova.getActivity().checkSelfPermission("android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED) {
+                    cordova.requestPermission(this, 565, "android.permission.POST_NOTIFICATIONS");
+                  }
+                } else if (Build.VERSION.SDK_INT >= 23) {
+                  if (cordova.getActivity().checkSelfPermission("android.permission.WRITE_EXTERNAL_STORAGE") != PackageManager.PERMISSION_GRANTED) {
+                    cordova.requestPermission(this, 566, "android.permission.WRITE_EXTERNAL_STORAGE");
+                  }
                 }
                 callbackContext.success();
                 return true;
@@ -124,8 +219,178 @@ jobs:
                 } catch (Exception ignored) {}
                 callbackContext.success();
                 return true;
+              } else if ("updateMediaNotification".equals(action)) {
+                updateMediaNotification(
+                  args.optString(0, "LyricalAI"),
+                  args.optString(1, "Bilinmiyor"),
+                  args.optBoolean(2, false),
+                  args.optString(3, "")
+                );
+                callbackContext.success();
+                return true;
+              } else if ("clearMediaNotification".equals(action)) {
+                Context ctx = cordova.getActivity().getApplicationContext();
+                NotificationManager nm = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
+                if (nm != null) nm.cancel(MEDIA_NOTIF_ID);
+                callbackContext.success();
+                return true;
+              } else if ("saveMediaChunk".equals(action)) {
+                final String fileName = args.optString(0, "");
+                final String b64 = args.optString(1, "");
+                final boolean append = args.optBoolean(2, false);
+                cordova.getThreadPool().execute(() -> {
+                  try {
+                    File outFile = new File(getMusicStorageDir(), fileName);
+                    byte[] bytes = Base64.decode(b64, Base64.DEFAULT);
+                    try (FileOutputStream fos = new FileOutputStream(outFile, append)) {
+                      fos.write(bytes);
+                    }
+                    callbackContext.success(outFile.getAbsolutePath());
+                  } catch (Exception e) {
+                    callbackContext.error(e.getMessage());
+                  }
+                });
+                return true;
+              } else if ("readMediaChunk".equals(action)) {
+                final String fileName = args.optString(0, "");
+                final int offset = args.optInt(1, 0);
+                final int length = args.optInt(2, 524288);
+                cordova.getThreadPool().execute(() -> {
+                  try {
+                    File inFile = new File(getMusicStorageDir(), fileName);
+                    JSONObject res = new JSONObject();
+                    if (!inFile.exists()) {
+                      res.put("exists", false);
+                      callbackContext.success(res);
+                      return;
+                    }
+                    long total = inFile.length();
+                    res.put("exists", true);
+                    res.put("totalSize", total);
+                    if (offset >= total) {
+                      res.put("data", "");
+                      res.put("eof", true);
+                      callbackContext.success(res);
+                      return;
+                    }
+                    int toRead = (int) Math.min(length, total - offset);
+                    byte[] buf = new byte[toRead];
+                    try (FileInputStream fis = new FileInputStream(inFile)) {
+                      fis.skip(offset);
+                      int read = fis.read(buf);
+                      String encoded = Base64.encodeToString(buf, 0, Math.max(0, read), Base64.NO_WRAP);
+                      res.put("data", encoded);
+                      res.put("eof", (offset + read) >= total);
+                    }
+                    callbackContext.success(res);
+                  } catch (Exception e) {
+                    callbackContext.error(e.getMessage());
+                  }
+                });
+                return true;
+              } else if ("deleteMediaFile".equals(action)) {
+                final String fileName = args.optString(0, "");
+                cordova.getThreadPool().execute(() -> {
+                  try {
+                    File f = new File(getMusicStorageDir(), fileName);
+                    if (f.exists()) f.delete();
+                  } catch (Exception ignored) {}
+                });
+                callbackContext.success();
+                return true;
+              } else if ("saveBackupJson".equals(action)) {
+                final String jsonStr = args.optString(0, "[]");
+                cordova.getThreadPool().execute(() -> {
+                  try {
+                    File f = getBackupJsonFile();
+                    try (FileOutputStream fos = new FileOutputStream(f, false)) {
+                      fos.write(jsonStr.getBytes(StandardCharsets.UTF_8));
+                    }
+                  } catch (Exception ignored) {}
+                });
+                callbackContext.success();
+                return true;
+              } else if ("loadBackupJson".equals(action)) {
+                cordova.getThreadPool().execute(() -> {
+                  try {
+                    File f = getBackupJsonFile();
+                    if (!f.exists()) {
+                      callbackContext.success("[]");
+                      return;
+                    }
+                    byte[] data = new byte[(int) f.length()];
+                    try (FileInputStream fis = new FileInputStream(f)) {
+                      fis.read(data);
+                    }
+                    callbackContext.success(new String(data, StandardCharsets.UTF_8));
+                  } catch (Exception e) {
+                    callbackContext.success("[]");
+                  }
+                });
+                return true;
               }
               return false;
+            }
+
+            private PendingIntent createMediaActionIntent(Context ctx, String cmd, int reqCode) {
+              Intent i = new Intent(ACTION_MEDIA_CONTROL);
+              i.setPackage(ctx.getPackageName());
+              i.putExtra("cmd", cmd);
+              int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0);
+              return PendingIntent.getBroadcast(ctx, reqCode, i, flags);
+            }
+
+            private void updateMediaNotification(String title, String artist, boolean isPlaying, String coverBase64) {
+              Context ctx = cordova.getActivity().getApplicationContext();
+              NotificationManager nm = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
+              if (nm == null) return;
+
+              if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                NotificationChannel ch = new NotificationChannel(MEDIA_CHANNEL_ID, "Müzik Kontrolü", NotificationManager.IMPORTANCE_LOW);
+                ch.setShowBadge(false);
+                nm.createNotificationChannel(ch);
+              }
+
+              Intent openIntent = new Intent(ctx, cordova.getActivity().getClass());
+              openIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+              int piFlags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0);
+              PendingIntent contentPi = PendingIntent.getActivity(ctx, 10, openIntent, piFlags);
+
+              Notification.Builder b = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                ? new Notification.Builder(ctx, MEDIA_CHANNEL_ID)
+                : new Notification.Builder(ctx);
+
+              b.setSmallIcon(ctx.getApplicationInfo().icon)
+               .setContentTitle(title)
+               .setContentText(artist)
+               .setContentIntent(contentPi)
+               .setOngoing(isPlaying)
+               .setOnlyAlertOnce(true)
+               .setVisibility(Notification.VISIBILITY_PUBLIC);
+
+              if (coverBase64 != null && !coverBase64.isEmpty()) {
+                try {
+                  String clean = coverBase64.contains(",") ? coverBase64.split(",")[1] : coverBase64;
+                  byte[] decoded = Base64.decode(clean, Base64.DEFAULT);
+                  Bitmap bmp = BitmapFactory.decodeByteArray(decoded, 0, decoded.length);
+                  if (bmp != null) b.setLargeIcon(bmp);
+                } catch (Exception ignored) {}
+              }
+
+              PendingIntent prevPi = createMediaActionIntent(ctx, "backward", 101);
+              PendingIntent togglePi = createMediaActionIntent(ctx, "toggle", 102);
+              PendingIntent nextPi = createMediaActionIntent(ctx, "forward", 103);
+
+              b.addAction(new Notification.Action.Builder(android.R.drawable.ic_media_rew, "Geri", prevPi).build());
+              b.addAction(new Notification.Action.Builder(
+                isPlaying ? android.R.drawable.ic_media_pause : android.R.drawable.ic_media_play,
+                isPlaying ? "Duraklat" : "Oynat",
+                togglePi
+              ).build());
+              b.addAction(new Notification.Action.Builder(android.R.drawable.ic_media_ff, "İleri", nextPi).build());
+
+              b.setStyle(new Notification.MediaStyle().setShowActionsInCompactView(0, 1, 2));
+              nm.notify(MEDIA_NOTIF_ID, b.build());
             }
 
             private void showNotification(String title, String body) {
