@@ -51,6 +51,68 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
+        /* Durum Banner Stilleri (bekle -> turuncu, hata -> kırmızı, basari -> yeşil) */
+        .status-banner {
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            transition: all 0.25s ease;
+        }
+        .status-banner.bekle {
+            background: rgba(120, 53, 15, 0.92);
+            border: 1px solid rgba(251, 146, 60, 0.55);
+            color: #ffedd5;
+        }
+        .status-banner.hata {
+            background: rgba(127, 29, 29, 0.92);
+            border: 1px solid rgba(248, 113, 113, 0.55);
+            color: #fee2e2;
+        }
+        .status-banner.basari {
+            background: rgba(6, 78, 59, 0.92);
+            border: 1px solid rgba(52, 211, 153, 0.55);
+            color: #d1fae5;
+        }
+
+        /* Şarkı Kapak Kutusu */
+        .cover-wrapper {
+            width: 170px;
+            height: 170px;
+            margin: 0 auto 22px auto;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 14px 35px rgba(0, 0, 0, 0.45);
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s ease, border-color 0.2s ease;
+        }
+        .cover-wrapper:hover {
+            border-color: rgba(96, 165, 250, 0.45);
+        }
+        .cover-wrapper:active {
+            transform: scale(0.97);
+        }
+        #song-cover-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .cover-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 13px;
+        }
+        .cover-placeholder span {
+            font-size: 32px;
+        }
+
         @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
         @keyframes slideInBottom { from { transform: translateY(100%); } to { transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -150,7 +212,117 @@
                 const tx = db.transaction(STORE_NAME, 'readwrite');
                 tx.objectStore(STORE_NAME).delete(`${projectId}_audio`);
                 tx.objectStore(STORE_NAME).delete(`${projectId}_video`);
+                tx.objectStore(STORE_NAME).delete(`${projectId}_cover`);
             } catch (e) {}
+        };
+
+        // --- GÖMÜLÜ MP3 KAPAĞI ÇEKME (ID3v2 APIC) ---
+        const extractMp3CoverBlob = async (audioFile) => {
+            try {
+                const buffer = await audioFile.slice(0, 1536 * 1024).arrayBuffer(); // ilk 1.5MB yeterli
+                const view = new DataView(buffer);
+
+                if (view.byteLength < 10 ||
+                    String.fromCharCode(view.getUint8(0), view.getUint8(1), view.getUint8(2)) !== 'ID3') {
+                    return null;
+                }
+
+                const version = view.getUint8(3);
+                const tagSize =
+                    ((view.getUint8(6) & 0x7f) << 21) |
+                    ((view.getUint8(7) & 0x7f) << 14) |
+                    ((view.getUint8(8) & 0x7f) << 7) |
+                    (view.getUint8(9) & 0x7f);
+
+                let offset = 10;
+                const limit = Math.min(tagSize + 10, view.byteLength - 10);
+
+                while (offset < limit) {
+                    const frameId = String.fromCharCode(
+                        view.getUint8(offset), view.getUint8(offset + 1),
+                        view.getUint8(offset + 2), view.getUint8(offset + 3)
+                    );
+                    if (!frameId.trim() || frameId === '\0\0\0\0') break;
+
+                    const frameSize = version === 4
+                        ? ((view.getUint8(offset + 4) & 0x7f) << 21) |
+                          ((view.getUint8(offset + 5) & 0x7f) << 14) |
+                          ((view.getUint8(offset + 6) & 0x7f) << 7) |
+                          (view.getUint8(offset + 7) & 0x7f)
+                        : view.getUint32(offset + 4);
+
+                    if (frameSize <= 0 || offset + 10 + frameSize > view.byteLength) break;
+
+                    if (frameId === 'APIC') {
+                        let p = offset + 10;
+                        const encoding = view.getUint8(p++);
+                        let mime = '';
+                        while (p < offset + 10 + frameSize && view.getUint8(p) !== 0) {
+                            mime += String.fromCharCode(view.getUint8(p++));
+                        }
+                        p += 2; // null byte + picture type byte atla
+
+                        // açıklama (description) kısmını atla
+                        if (encoding === 1 || encoding === 2) {
+                            while (p + 1 < offset + 10 + frameSize && !(view.getUint8(p) === 0 && view.getUint8(p + 1) === 0)) p += 2;
+                            p += 2;
+                        } else {
+                            while (p < offset + 10 + frameSize && view.getUint8(p) !== 0) p++;
+                            p += 1;
+                        }
+
+                        if (p < offset + 10 + frameSize) {
+                            const imgBytes = new Uint8Array(buffer, p, offset + 10 + frameSize - p);
+                            return new Blob([imgBytes], { type: mime || 'image/jpeg' });
+                        }
+                    }
+
+                    offset += 10 + frameSize;
+                }
+                return null;
+            } catch (e) {
+                return null;
+            }
+        };
+
+        // --- MOBİL BİLDİRİM & SERVICE WORKER ---
+        const bildirimHazirla = async () => {
+            try {
+                if ('Notification' in window && Notification.permission === 'default') {
+                    await Notification.requestPermission().catch(() => {});
+                }
+                if ('serviceWorker' in navigator) {
+                    const swCode = `self.addEventListener('notificationclick', e => { e.notification.close(); e.waitUntil(clients.openWindow('/')); });`;
+                    const blob = new Blob([swCode], { type: 'application/javascript' });
+                    await navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+                }
+            } catch (e) {}
+        };
+
+        const sarkiHazirBildirimiGonder = async (sarkiAdi = 'şarkın') => {
+            if ('vibrate' in navigator) {
+                try { navigator.vibrate([200, 100, 200]); } catch (e) {}
+            }
+
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+            const baslik = 'şarkı hazır! 🎵';
+            const secenekler = {
+                body: `${sarkiAdi} için ai analizi tamamlandı, sözler seni bekliyor.`,
+                vibrate: [200, 100, 200],
+                tag: 'sarki-analiz-bitti',
+                renotify: true
+            };
+
+            try {
+                const reg = await Promise.race([
+                    navigator.serviceWorker.ready,
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('SW_TIMEOUT')), 1500))
+                ]);
+                await reg.showNotification(baslik, secenekler);
+            } catch {
+                try { new Notification(baslik, secenekler); } catch (e) {}
+            }
         };
 
         // --- ICON COMPONENT ---
@@ -448,6 +620,22 @@
         // --- PROJECTS LIST VIEW ---
         const ProjectsView = ({ projects, setView, loadProject, deleteProject, effectiveApiKey }) => {
             const [search, setSearch] = useState("");
+            const [coverThumbs, setCoverThumbs] = useState({});
+
+            useEffect(() => {
+                let cancelled = false;
+                const loadThumbs = async () => {
+                    const map = {};
+                    for (const p of projects) {
+                        const blob = await getMediaBlob(`${p.id}_cover`);
+                        if (blob) map[p.id] = URL.createObjectURL(blob);
+                    }
+                    if (!cancelled) setCoverThumbs(map);
+                };
+                loadThumbs();
+                return () => { cancelled = true; };
+            }, [projects]);
+
             const filtered = useMemo(() =>
                 projects.filter(p =>
                     p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -460,7 +648,7 @@
                     <div className="pt-12 pb-4 px-6 flex justify-between items-center z-10">
                         <div>
                             <h1 className="text-3xl font-black text-white font-cinzel tracking-tight">LyricalAI</h1>
-                            <p className="text-gray-400 text-[11px] tracking-widest uppercase">Studio Pro v4.1</p>
+                            <p className="text-gray-400 text-[11px] tracking-widest uppercase">Studio Pro v4.2</p>
                         </div>
                         <button onClick={() => setView('settings')} className="glass-button p-3 rounded-full text-gray-200 hover:text-white transition-all active:scale-95 relative">
                             <Icon name="Settings" size={20} />
@@ -496,6 +684,7 @@
                             <div className="space-y-3">
                                 {filtered.map(p => {
                                     const ArtComp = ALBUM_ARTS[(p.fileName?.length || 0) % ALBUM_ARTS.length];
+                                    const thumbUrl = coverThumbs[p.id];
                                     return (
                                         <div
                                             key={p.id}
@@ -504,7 +693,11 @@
                                         >
                                             <div className="flex items-center gap-3.5 overflow-hidden">
                                                 <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-white/10 relative">
-                                                    <ArtComp />
+                                                    {thumbUrl ? (
+                                                        <img src={thumbUrl} alt={p.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <ArtComp />
+                                                    )}
                                                     <span className={`absolute bottom-1 right-1 w-2 h-2 rounded-full ${p.themeMode === 'nostalgic' ? 'bg-purple-400' : 'bg-blue-400'}`}></span>
                                                 </div>
                                                 <div className="overflow-hidden">
@@ -564,6 +757,14 @@
                     await saveMediaBlob(`${projectId}_video`, customBgFile);
                 }
 
+                // MP3 dosyasının içinde gömülü albüm kapağı varsa otomatik sök ve kaydet
+                let coverUrl = null;
+                const embeddedCoverBlob = await extractMp3CoverBlob(audioFile);
+                if (embeddedCoverBlob) {
+                    await saveMediaBlob(`${projectId}_cover`, embeddedCoverBlob);
+                    coverUrl = URL.createObjectURL(embeddedCoverBlob);
+                }
+
                 let initialLyrics = [];
                 if (skipAI && manualText.trim()) {
                     const parsedLrc = parseLRC(manualText);
@@ -591,9 +792,9 @@
                     lyrics: initialLyrics
                 };
 
-                createNewProject(newP, audioUrl, videoUrl);
+                createNewProject(newP, audioUrl, videoUrl, coverUrl);
                 if (!skipAI && effectiveApiKey) {
-                    await analyzeFile(audioFile, newP, mode);
+                    analyzeFile(audioFile, newP, mode);
                 }
             };
 
@@ -812,7 +1013,7 @@
                             </div>
 
                             <div>
-                                <label className="text-gray-400 text-[11px] font-bold ml-1 mb-2 block uppercase tracking-wider">Model Seçimi</label>
+                                <label className="text-gray-400 text-[11px] font-bold ml-1 mb-2 block uppercase tracking-wider">Model Seçimi (Kilitli)</label>
                                 <input
                                     type="text"
                                     value={settings.modelName}
@@ -1036,13 +1237,12 @@
             const [manualSyncMode, setManualSyncMode] = useState(false);
             const [fileBlob, setFileBlob] = useState(null);
             const [videoBlob, setVideoBlob] = useState(null);
+            const [coverBlobUrl, setCoverBlobUrl] = useState(null);
             const [isPlaying, setIsPlaying] = useState(false);
             const [currentTime, setCurrentTime] = useState(0);
             const [duration, setDuration] = useState(0);
             const [lyrics, setLyrics] = useState([]);
-            const [isLoading, setIsLoading] = useState(false);
-            const [loadingStep, setLoadingStep] = useState("");
-            const [error, setError] = useState("");
+            const [statusBanner, setStatusBanner] = useState({ visible: false, message: "", type: "bekle" });
             const [isLeftMenuOpen, setIsLeftMenuOpen] = useState(false);
             const [activeIndex, setActiveIndex] = useState(-1);
             const [syncState, setSyncState] = useState({ visible: false, type: 'center' });
@@ -1057,8 +1257,41 @@
             const rafRef = useRef(null);
             const fileInputRef = useRef(null);
             const customVideoInputRef = useRef(null);
+            const coverFileInputRef = useRef(null);
             const audioCtxRef = useRef(null);
             const analyserRef = useRef(null);
+            const aktifAbortControllerRef = useRef(null);
+            const currentProjectIdRef = useRef(null);
+            const bannerTimeoutRef = useRef(null);
+
+            useEffect(() => {
+                currentProjectIdRef.current = currentProject?.id || null;
+            }, [currentProject]);
+
+            const durumBannerGuncelle = useCallback((mesaj, tip = 'bekle', autoHideMs = 0) => {
+                if (bannerTimeoutRef.current) {
+                    clearTimeout(bannerTimeoutRef.current);
+                    bannerTimeoutRef.current = null;
+                }
+                setStatusBanner({ visible: true, message: mesaj, type: tip });
+                if (autoHideMs > 0) {
+                    bannerTimeoutRef.current = setTimeout(() => {
+                        setStatusBanner(prev => ({ ...prev, visible: false }));
+                    }, autoHideMs);
+                }
+            }, []);
+
+            const handleCloseStatusBanner = useCallback(() => {
+                if (bannerTimeoutRef.current) {
+                    clearTimeout(bannerTimeoutRef.current);
+                    bannerTimeoutRef.current = null;
+                }
+                if (aktifAbortControllerRef.current) {
+                    aktifAbortControllerRef.current.abort();
+                    aktifAbortControllerRef.current = null;
+                }
+                setStatusBanner(prev => ({ ...prev, visible: false }));
+            }, []);
 
             const effectiveApiKey = settings.apiKey;
             const currentFont = currentProject ? FONTS.find(f => f.id === currentProject.fontId) || FONTS[0] : FONTS[0];
@@ -1087,19 +1320,19 @@
                 } catch (e) {}
             }, []);
 
-            const loadProject = async (project, initialAudioUrl = null, initialVideoUrl = null) => {
+            const loadProject = async (project, initialAudioUrl = null, initialVideoUrl = null, initialCoverUrl = null) => {
                 setCurrentProject(project);
                 setLyrics(project.lyrics || []);
                 setIsPlaying(false);
                 setCurrentTime(0);
                 setDuration(0);
                 setActiveIndex(-1);
-                setError("");
                 userHasScrolled.current = false;
                 setSyncState({ visible: false, type: 'center' });
 
                 let resolvedAudio = initialAudioUrl;
                 let resolvedVideo = initialVideoUrl;
+                let resolvedCover = initialCoverUrl;
 
                 if (!resolvedAudio) {
                     const storedAudio = await getMediaBlob(`${project.id}_audio`);
@@ -1109,15 +1342,20 @@
                     const storedVideo = await getMediaBlob(`${project.id}_video`);
                     if (storedVideo) resolvedVideo = URL.createObjectURL(storedVideo);
                 }
+                if (!resolvedCover) {
+                    const storedCover = await getMediaBlob(`${project.id}_cover`);
+                    if (storedCover) resolvedCover = URL.createObjectURL(storedCover);
+                }
 
                 setFileBlob(resolvedAudio);
                 setVideoBlob(resolvedVideo);
+                setCoverBlobUrl(resolvedCover);
                 setView('player');
             };
 
-            const createNewProject = (newP, audioUrl, videoUrl) => {
+            const createNewProject = (newP, audioUrl, videoUrl, coverUrl) => {
                 setProjects(prev => [newP, ...prev]);
-                loadProject(newP, audioUrl, videoUrl);
+                loadProject(newP, audioUrl, videoUrl, coverUrl);
             };
 
             const deleteProject = async (e, projectId) => {
@@ -1143,6 +1381,15 @@
                     setIsPlaying(false);
                 }
                 setView('projects');
+            };
+
+            // Manuel galeriden kapak seçme
+            const handleCoverChange = async (e) => {
+                const file = e.target.files?.[0];
+                if (!file || !currentProject) return;
+                await saveMediaBlob(`${currentProject.id}_cover`, file);
+                setCoverBlobUrl(URL.createObjectURL(file));
+                e.target.value = "";
             };
 
             useEffect(() => {
@@ -1248,9 +1495,9 @@
                 } else {
                     audioRef.current.play()
                         .then(() => setIsPlaying(true))
-                        .catch(() => setError("Ses oynatılamadı. Lütfen dosyayı tekrar seç."));
+                        .catch(() => durumBannerGuncelle("ses oynatılamadı. lütfen dosyayı tekrar seç.", "hata"));
                 }
-            }, [fileBlob, isPlaying, setupAudioAnalyser]);
+            }, [fileBlob, isPlaying, setupAudioAnalyser, durumBannerGuncelle]);
 
             const seekAudio = useCallback((ms) => {
                 if (!audioRef.current || !fileBlob) return;
@@ -1270,7 +1517,16 @@
                 if (!file || !currentProject) return;
                 await saveMediaBlob(`${currentProject.id}_audio`, file);
                 setFileBlob(URL.createObjectURL(file));
-                setError("");
+
+                // Eğer projenin henüz kapağı yoksa yeni yüklenen mp3'ten gömülü kapağı çek
+                if (!coverBlobUrl) {
+                    const embeddedCover = await extractMp3CoverBlob(file);
+                    if (embeddedCover) {
+                        await saveMediaBlob(`${currentProject.id}_cover`, embeddedCover);
+                        setCoverBlobUrl(URL.createObjectURL(embeddedCover));
+                    }
+                }
+                setStatusBanner(prev => ({ ...prev, visible: false }));
             };
 
             const handleCustomVideoReupload = async (e) => {
@@ -1281,29 +1537,42 @@
                 updateProjectAndSave({ bgVideoType: 'custom' });
             };
 
+            // --- MODEL KİLİTLİ + OTOMATİK YENİDEN DENEMELİ + MOBİL BİLDİRİMLİ ANALİZ ---
             const analyzeFile = async (file, projectToUpdate, modeOverride = null) => {
                 if (!effectiveApiKey) {
-                    setError("Analiz için Ayarlar'dan Gemini API Key girmelisin.");
+                    durumBannerGuncelle("analiz için ayarlar'dan gemini api key girmelisin.", "hata");
                     return;
                 }
                 if (file.size > 19 * 1024 * 1024) {
-                    setError("Dosya boyutu 19MB'dan büyük. Daha küçük boyutlu bir MP3 kullan.");
+                    durumBannerGuncelle("dosya boyutu 19MB'dan büyük. daha küçük boyutlu bir mp3 kullan.", "hata");
                     return;
                 }
 
-                setIsLoading(true);
-                setLoadingStep("Ses dosyası hazırlanıyor...");
+                await bildirimHazirla();
+
+                if (aktifAbortControllerRef.current) {
+                    aktifAbortControllerRef.current.abort();
+                }
+                const controller = new AbortController();
+                aktifAbortControllerRef.current = controller;
+
+                const seciliModel = settings.modelName || "gemini-2.5-flash";
                 const activeMode = modeOverride || projectToUpdate.themeMode;
+
+                let wakeLock = null;
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen').catch(() => null);
+                }
+
+                durumBannerGuncelle(`ses dosyası hazırlanıyor (${seciliModel})...`, 'bekle');
 
                 try {
                     const base64 = await new Promise((resolve, reject) => {
                         const reader = new FileReader();
                         reader.onloadend = () => resolve(reader.result.split(',')[1]);
-                        reader.onerror = () => reject(new Error("Dosya okunamadı."));
+                        reader.onerror = () => reject(new Error("KALICI_HATA: dosya okunamadı."));
                         reader.readAsDataURL(file);
                     });
-
-                    setLoadingStep(`${settings.modelName} sözleri ve zaman damgalarını çıkarıyor...`);
 
                     const styleInstruction = activeMode === 'nostalgic'
                         ? "Group lyrics into natural poetic sentences (max 10-12 words per entry) suitable for cinema subtitles."
@@ -1320,61 +1589,142 @@ Return ONLY valid JSON matching this exact schema:
   ]
 }`;
 
-                    const res = await fetch(
-                        `https://generativelanguage.googleapis.com/v1beta/models/${settings.modelName}:generateContent?key=${effectiveApiKey}`,
-                        {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                contents: [{
-                                    parts: [
-                                        { text: prompt },
-                                        { inlineData: { data: base64, mimeType: file.type || "audio/mp3" } }
-                                    ]
-                                }],
-                                generationConfig: {
-                                    responseMimeType: "application/json",
-                                    temperature: 0.2
-                                }
-                            })
+                    const audioPayload = {
+                        contents: [{
+                            parts: [
+                                { text: prompt },
+                                { inlineData: { data: base64, mimeType: file.type || "audio/mpeg" } }
+                            ]
+                        }],
+                        generationConfig: {
+                            responseMimeType: "application/json",
+                            temperature: 0.2
                         }
-                    );
+                    };
 
-                    const data = await res.json();
-                    if (data.error) throw new Error(data.error.message);
+                    let deneme = 0;
+                    let beklemeSuresiMs = 3000; // ilk hatada 3 sn bekle, sonra katlayarak artar (max 20 sn)
 
-                    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-                    const cleanedJson = rawText.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
-                    const parsed = JSON.parse(cleanedJson);
+                    while (true) {
+                        if (controller.signal.aborted) {
+                            throw new DOMException('Aborted', 'AbortError');
+                        }
 
-                    const rawLyrics = Array.isArray(parsed) ? parsed : (parsed.lyrics || []);
-                    if (!Array.isArray(rawLyrics) || rawLyrics.length === 0) {
-                        throw new Error("Ses içinde çözümlenebilir vokal söz bulunamadı.");
+                        deneme++;
+                        durumBannerGuncelle(
+                            deneme === 1
+                                ? `${seciliModel} ses dalgalarını çözümlüyor...`
+                                : `${seciliModel} şu an yoğun, otomatik tekrar deneniyor... (deneme ${deneme})`,
+                            'bekle'
+                        );
+
+                        try {
+                            // DİKKAT: burada sadece seciliModel kullanılır, asla yedek modele fallback yapılmaz
+                            const res = await fetch(
+                                `https://generativelanguage.googleapis.com/v1beta/models/${seciliModel}:generateContent?key=${effectiveApiKey}`,
+                                {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify(audioPayload),
+                                    signal: controller.signal
+                                }
+                            );
+
+                            const data = await res.json().catch(() => ({}));
+                            const errMsg = data?.error?.message || res.statusText || "";
+
+                            // 503 (high demand) veya 429 (rate limit) geldiyse döngüye devam et
+                            if (
+                                res.status === 503 ||
+                                res.status === 429 ||
+                                errMsg.toLowerCase().includes('high demand') ||
+                                errMsg.toLowerCase().includes('overloaded') ||
+                                errMsg.toLowerCase().includes('temporarily unavailable')
+                            ) {
+                                throw new Error('HIGH_DEMAND');
+                            }
+
+                            // api key hatası veya model adı hatası gibi kalıcı sorunlarda döngüden çık
+                            if (!res.ok || data?.error) {
+                                throw new Error(`KALICI_HATA: ${errMsg || 'bilinmeyen api hatası'}`);
+                            }
+
+                            const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                            const cleanedJson = rawText.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+                            const parsed = JSON.parse(cleanedJson);
+
+                            const rawLyrics = Array.isArray(parsed) ? parsed : (parsed.lyrics || []);
+                            if (!Array.isArray(rawLyrics) || rawLyrics.length === 0) {
+                                throw new Error("KALICI_HATA: ses içinde çözümlenebilir vokal söz bulunamadı.");
+                            }
+
+                            const sanitized = sortLyricsByTime(
+                                rawLyrics
+                                    .filter(item => item && typeof item.text === 'string' && item.text.trim())
+                                    .map(item => ({
+                                        text: item.text.trim(),
+                                        ms: Math.max(0, Number(item.ms) || 0)
+                                    }))
+                            );
+
+                            const detectedArtist = (!Array.isArray(parsed) && parsed.artist && parsed.artist !== "Bilinmiyor")
+                                ? parsed.artist
+                                : projectToUpdate.artist;
+
+                            setProjects(prev => prev.map(p =>
+                                p.id === projectToUpdate.id ? { ...p, lyrics: sanitized, artist: detectedArtist } : p
+                            ));
+
+                            if (currentProjectIdRef.current === projectToUpdate.id) {
+                                setLyrics(sanitized);
+                                setCurrentProject(prev => prev ? { ...prev, lyrics: sanitized, artist: detectedArtist } : prev);
+                            }
+
+                            durumBannerGuncelle('analiz tamamlandı, sözler eklendi.', 'basari', 5000);
+                            await sarkiHazirBildirimiGonder(projectToUpdate.name);
+                            return;
+
+                        } catch (err) {
+                            if (err.name === 'AbortError') {
+                                durumBannerGuncelle('analiz iptal edildi.', 'hata', 3000);
+                                return;
+                            }
+
+                            if (err.message && err.message.startsWith('KALICI_HATA')) {
+                                durumBannerGuncelle(err.message.replace('KALICI_HATA: ', ''), 'hata');
+                                return;
+                            }
+
+                            // yoğunluk veya geçici ağ hatası: bekle ve tekrar dene
+                            const saniye = Math.round(beklemeSuresiMs / 1000);
+                            durumBannerGuncelle(
+                                `model yoğun (${seciliModel}), ${saniye} sn içinde tekrar denenecek... (#${deneme})`,
+                                'bekle'
+                            );
+
+                            await new Promise((resolve, reject) => {
+                                const timer = setTimeout(resolve, beklemeSuresiMs);
+                                controller.signal.addEventListener('abort', () => {
+                                    clearTimeout(timer);
+                                    reject(new DOMException('Aborted', 'AbortError'));
+                                }, { once: true });
+                            });
+
+                            // üst üste çakışmasın diye hafif rastgelelik + tavan 20 saniye
+                            beklemeSuresiMs = Math.min(beklemeSuresiMs * 1.6 + Math.random() * 1000, 20000);
+                        }
                     }
-
-                    const sanitized = sortLyricsByTime(
-                        rawLyrics
-                            .filter(item => item && typeof item.text === 'string' && item.text.trim())
-                            .map(item => ({
-                                text: item.text.trim(),
-                                ms: Math.max(0, Number(item.ms) || 0)
-                            }))
-                    );
-
-                    const detectedArtist = (!Array.isArray(parsed) && parsed.artist && parsed.artist !== "Bilinmiyor")
-                        ? parsed.artist
-                        : projectToUpdate.artist;
-
-                    setLyrics(sanitized);
-                    setProjects(prev => prev.map(p =>
-                        p.id === projectToUpdate.id ? { ...p, lyrics: sanitized, artist: detectedArtist } : p
-                    ));
-                    setCurrentProject(prev => prev ? { ...prev, lyrics: sanitized, artist: detectedArtist } : prev);
-
-                } catch (err) {
-                    setError("AI Analiz Hatası: " + err.message);
+                } catch (outerErr) {
+                    if (outerErr.name === 'AbortError') {
+                        durumBannerGuncelle('analiz iptal edildi.', 'hata', 3000);
+                    } else {
+                        durumBannerGuncelle(outerErr.message?.replace('KALICI_HATA: ', '') || 'beklenmeyen bir hata oluştu.', 'hata');
+                    }
                 } finally {
-                    setIsLoading(false);
+                    if (aktifAbortControllerRef.current === controller) {
+                        aktifAbortControllerRef.current = null;
+                    }
+                    if (wakeLock) wakeLock.release().catch(() => {});
                 }
             };
 
@@ -1382,10 +1732,10 @@ Return ONLY valid JSON matching this exact schema:
                 if (!currentProject) return;
                 const storedAudio = await getMediaBlob(`${currentProject.id}_audio`);
                 if (!storedAudio) {
-                    setError("Yeniden analiz için ses dosyasını tekrar seçmelisin.");
+                    durumBannerGuncelle("yeniden analiz için ses dosyasını tekrar seçmelisin.", "hata");
                     return;
                 }
-                await analyzeFile(storedAudio, currentProject, currentProject.themeMode);
+                analyzeFile(storedAudio, currentProject, currentProject.themeMode);
             };
 
             const onSyncClick = useCallback(() => {
@@ -1403,6 +1753,9 @@ Return ONLY valid JSON matching this exact schema:
 
             const renderAlbumArt = () => {
                 if (!currentProject) return null;
+                if (coverBlobUrl) {
+                    return <img src={coverBlobUrl} alt={currentProject.name} className="w-full h-full object-cover" />;
+                }
                 const ArtComponent = ALBUM_ARTS[(currentProject.fileName?.length || 0) % ALBUM_ARTS.length];
                 return <ArtComponent />;
             };
@@ -1420,23 +1773,34 @@ Return ONLY valid JSON matching this exact schema:
                     />
                     <input type="file" ref={fileInputRef} accept="audio/*" className="hidden" onChange={handleReupload} />
                     <input type="file" ref={customVideoInputRef} accept="video/*" className="hidden" onChange={handleCustomVideoReupload} />
+                    <input type="file" id="cover-file-input" ref={coverFileInputRef} accept="image/*" hidden onChange={handleCoverChange} />
 
-                    {error && (
-                        <div onClick={() => setError("")} className="fixed top-12 left-4 right-4 max-w-lg mx-auto z-[120] glass-panel bg-red-950/90 border-red-500/50 p-4 rounded-2xl text-white flex items-center gap-3 shadow-2xl fade-in cursor-pointer">
-                            <Icon name="AlertTriangle" className="text-red-400 shrink-0" size={20} />
-                            <span className="text-xs font-medium leading-relaxed flex-1">{error}</span>
-                            <Icon name="X" size={16} className="text-white/60 shrink-0" />
-                        </div>
-                    )}
-
-                    {isLoading && (
-                        <div className="fixed inset-0 z-[110] bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 fade-in">
-                            <div className="relative mb-6">
-                                <div className="w-16 h-16 rounded-full border-4 border-blue-500/20 border-t-blue-500 animate-spin"></div>
-                                <Icon name="Sparkles" size={22} className="text-blue-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-                            </div>
-                            <p className="text-white text-base font-bold text-center max-w-xs">{loadingStep}</p>
-                            <p className="text-gray-500 text-xs mt-2">Ses dalgaları işleniyor...</p>
+                    {/* ÜST DURUM BANNERI (Turuncu Bekleme / Kırmızı Hata / Yeşil Başarı) */}
+                    {statusBanner.visible && (
+                        <div
+                            id="ai-status-banner"
+                            className={`status-banner ${statusBanner.type} fixed top-12 left-4 right-4 max-w-lg mx-auto z-[120] p-3.5 rounded-2xl flex items-center gap-3 shadow-2xl fade-in`}
+                        >
+                            {statusBanner.type === 'bekle' && (
+                                <div className="w-4 h-4 rounded-full border-2 border-amber-300/30 border-t-amber-300 animate-spin shrink-0"></div>
+                            )}
+                            {statusBanner.type === 'hata' && (
+                                <Icon name="AlertTriangle" className="text-red-300 shrink-0" size={18} />
+                            )}
+                            {statusBanner.type === 'basari' && (
+                                <Icon name="CheckCircle2" className="text-emerald-300 shrink-0" size={18} />
+                            )}
+                            <span id="ai-status-text" className="text-xs font-medium leading-relaxed flex-1">
+                                {statusBanner.message}
+                            </span>
+                            <button
+                                id="ai-status-close"
+                                onClick={handleCloseStatusBanner}
+                                title="Kapat / İptal Et"
+                                className="p-1.5 rounded-full hover:bg-white/15 text-white/80 hover:text-white shrink-0 transition-colors"
+                            >
+                                <Icon name="X" size={16} />
+                            </button>
                         </div>
                     )}
 
@@ -1552,7 +1916,11 @@ Return ONLY valid JSON matching this exact schema:
                                 {currentProject.themeMode === 'classic' && (
                                     <div className="absolute top-24 left-6 right-6 z-20">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-2xl border border-white/10 shrink-0">
+                                            <div
+                                                onClick={() => coverFileInputRef.current?.click()}
+                                                title="Kapak değiştirmek için dokun"
+                                                className="w-16 h-16 rounded-2xl overflow-hidden shadow-2xl border border-white/10 shrink-0 cursor-pointer active:scale-95 transition-transform"
+                                            >
                                                 {renderAlbumArt()}
                                             </div>
                                             <div className="overflow-hidden">
@@ -1570,6 +1938,23 @@ Return ONLY valid JSON matching this exact schema:
                                 >
                                     {lyrics.length === 0 ? (
                                         <div className="h-full flex flex-col items-center justify-center text-center text-gray-500">
+                                            {/* KAPAK KUTUSU: "Bu projede henüz şarkı sözü yok." yazısının hemen üstü */}
+                                            <div
+                                                className="cover-wrapper"
+                                                id="cover-box"
+                                                title="kapak değiştirmek için dokun"
+                                                onClick={() => coverFileInputRef.current?.click()}
+                                            >
+                                                {coverBlobUrl ? (
+                                                    <img id="song-cover-img" src={coverBlobUrl} alt="şarkı kapağı" />
+                                                ) : (
+                                                    <div id="song-cover-placeholder" className="cover-placeholder">
+                                                        <span>🎵</span>
+                                                        <small>kapak ekle</small>
+                                                    </div>
+                                                )}
+                                            </div>
+
                                             <p className="text-sm font-medium mb-3">Bu projede henüz şarkı sözü yok.</p>
                                             <button
                                                 onClick={() => setIsLeftMenuOpen(true)}
