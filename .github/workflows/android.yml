@@ -36,6 +36,114 @@ jobs:
           cp index.html build_app/www/index.html
           if [ -f "icon.png" ]; then cp icon.png build_app/icon.png; else sed -i '/<icon/d' build_app/config.xml; fi
           cd build_app
+
+          node -e '
+          const fs = require("fs");
+          fs.mkdirSync("plugins_src/lyrical-native/src/android", { recursive: true });
+          fs.mkdirSync("plugins_src/lyrical-native/www", { recursive: true });
+
+          fs.writeFileSync("plugins_src/lyrical-native/plugin.xml", `<?xml version="1.0" encoding="UTF-8"?>
+          <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android" id="cordova-plugin-lyrical-native" version="1.0.0">
+            <name>LyricalNative</name>
+            <js-module src="www/lyricalNative.js" name="LyricalNative">
+              <clobbers target="window.LyricalNative" />
+            </js-module>
+            <platform name="android">
+              <config-file target="res/xml/config.xml" parent="/*">
+                <feature name="LyricalNative">
+                  <param name="android-package" value="com.nurullah.lyricalai.LyricalNative" />
+                </feature>
+              </config-file>
+              <config-file target="AndroidManifest.xml" parent="/manifest">
+                <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+                <uses-permission android:name="android.permission.WAKE_LOCK" />
+                <uses-permission android:name="android.permission.VIBRATE" />
+              </config-file>
+              <source-file src="src/android/LyricalNative.java" target-dir="src/com/nurullah/lyricalai" />
+            </platform>
+          </plugin>`);
+
+          fs.writeFileSync("plugins_src/lyrical-native/www/lyricalNative.js", `var exec = require("cordova/exec");
+          module.exports = {
+            requestPermission: function() { exec(null, null, "LyricalNative", "requestPermission", []); },
+            notify: function(title, body) { exec(null, null, "LyricalNative", "notify", [title, body]); },
+            acquireWakeLock: function() { exec(null, null, "LyricalNative", "acquireWakeLock", []); },
+            releaseWakeLock: function() { exec(null, null, "LyricalNative", "releaseWakeLock", []); }
+          };`);
+
+          fs.writeFileSync("plugins_src/lyrical-native/src/android/LyricalNative.java", `package com.nurullah.lyricalai;
+          import android.app.Notification;
+          import android.app.NotificationChannel;
+          import android.app.NotificationManager;
+          import android.app.PendingIntent;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.pm.PackageManager;
+          import android.os.Build;
+          import android.os.PowerManager;
+          import org.apache.cordova.CallbackContext;
+          import org.apache.cordova.CordovaPlugin;
+          import org.json.JSONArray;
+          import org.json.JSONException;
+
+          public class LyricalNative extends CordovaPlugin {
+            private static final String CHANNEL_ID = "lyrical_ai_channel";
+            private PowerManager.WakeLock wakeLock;
+
+            @Override
+            public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+              if ("requestPermission".equals(action)) {
+                if (Build.VERSION.SDK_INT >= 33 && cordova.getActivity().checkSelfPermission("android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED) {
+                  cordova.requestPermission(this, 565, "android.permission.POST_NOTIFICATIONS");
+                }
+                callbackContext.success();
+                return true;
+              } else if ("notify".equals(action)) {
+                showNotification(args.optString(0, "şarkı hazır!"), args.optString(1, "analiz tamamlandı."));
+                callbackContext.success();
+                return true;
+              } else if ("acquireWakeLock".equals(action)) {
+                try {
+                  if (wakeLock == null) {
+                    PowerManager pm = (PowerManager) cordova.getActivity().getSystemService(Context.POWER_SERVICE);
+                    if (pm != null) wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "LyricalAI::AnalyzeLock");
+                  }
+                  if (wakeLock != null && !wakeLock.isHeld()) wakeLock.acquire(10 * 60 * 1000L);
+                } catch (Exception ignored) {}
+                callbackContext.success();
+                return true;
+              } else if ("releaseWakeLock".equals(action)) {
+                try {
+                  if (wakeLock != null && wakeLock.isHeld()) wakeLock.release();
+                } catch (Exception ignored) {}
+                callbackContext.success();
+                return true;
+              }
+              return false;
+            }
+
+            private void showNotification(String title, String body) {
+              Context ctx = cordova.getActivity().getApplicationContext();
+              NotificationManager nm = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
+              if (nm == null) return;
+              if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                NotificationChannel ch = new NotificationChannel(CHANNEL_ID, "LyricalAI Bildirimleri", NotificationManager.IMPORTANCE_HIGH);
+                ch.enableVibration(true);
+                ch.setVibrationPattern(new long[]{0, 200, 100, 200});
+                nm.createNotificationChannel(ch);
+              }
+              Intent intent = new Intent(ctx, cordova.getActivity().getClass());
+              intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+              int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0);
+              PendingIntent pi = PendingIntent.getActivity(ctx, 0, intent, flags);
+              Notification.Builder b = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) ? new Notification.Builder(ctx, CHANNEL_ID) : new Notification.Builder(ctx);
+              b.setSmallIcon(ctx.getApplicationInfo().icon).setContentTitle(title).setContentText(body).setAutoCancel(true).setContentIntent(pi);
+              nm.notify((int) (System.currentTimeMillis() % 100000), b.build());
+            }
+          }`);
+          '
+
+          cordova plugin add ./plugins_src/lyrical-native
           cordova platform add android
           cordova build android --debug
 
