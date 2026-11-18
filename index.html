@@ -9,6 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
+    <script src="cordova.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Courier+Prime:wght@700&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -51,7 +52,6 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        /* Durum Banner Stilleri (bekle -> turuncu, hata -> kırmızı, basari -> yeşil) */
         .status-banner {
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
@@ -73,7 +73,6 @@
             color: #d1fae5;
         }
 
-        /* Şarkı Kapak Kutusu */
         .cover-wrapper {
             width: 170px;
             height: 170px;
@@ -219,7 +218,7 @@
         // --- GÖMÜLÜ MP3 KAPAĞI ÇEKME (ID3v2 APIC) ---
         const extractMp3CoverBlob = async (audioFile) => {
             try {
-                const buffer = await audioFile.slice(0, 1536 * 1024).arrayBuffer(); // ilk 1.5MB yeterli
+                const buffer = await audioFile.slice(0, 1536 * 1024).arrayBuffer();
                 const view = new DataView(buffer);
 
                 if (view.byteLength < 10 ||
@@ -260,9 +259,8 @@
                         while (p < offset + 10 + frameSize && view.getUint8(p) !== 0) {
                             mime += String.fromCharCode(view.getUint8(p++));
                         }
-                        p += 2; // null byte + picture type byte atla
+                        p += 2;
 
-                        // açıklama (description) kısmını atla
                         if (encoding === 1 || encoding === 2) {
                             while (p + 1 < offset + 10 + frameSize && !(view.getUint8(p) === 0 && view.getUint8(p + 1) === 0)) p += 2;
                             p += 2;
@@ -285,9 +283,19 @@
             }
         };
 
-        // --- MOBİL BİLDİRİM & SERVICE WORKER ---
+        // --- APK (NATIVE) & TARAYICI BİLDİRİM SİSTEMİ ---
+        document.addEventListener('deviceready', () => {
+            if (window.LyricalNative) {
+                window.LyricalNative.requestPermission();
+            }
+        }, false);
+
         const bildirimHazirla = async () => {
             try {
+                if (window.LyricalNative) {
+                    window.LyricalNative.requestPermission();
+                    return;
+                }
                 if ('Notification' in window && Notification.permission === 'default') {
                     await Notification.requestPermission().catch(() => {});
                 }
@@ -304,11 +312,18 @@
                 try { navigator.vibrate([200, 100, 200]); } catch (e) {}
             }
 
+            const baslik = 'şarkı hazır! 🎵';
+            const mesaj = `${sarkiAdi} için ai analizi tamamlandı, sözler seni bekliyor.`;
+
+            if (window.LyricalNative) {
+                window.LyricalNative.notify(baslik, mesaj);
+                return;
+            }
+
             if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
-            const baslik = 'şarkı hazır! 🎵';
             const secenekler = {
-                body: `${sarkiAdi} için ai analizi tamamlandı, sözler seni bekliyor.`,
+                body: mesaj,
                 vibrate: [200, 100, 200],
                 tag: 'sarki-analiz-bitti',
                 renotify: true
@@ -757,7 +772,6 @@
                     await saveMediaBlob(`${projectId}_video`, customBgFile);
                 }
 
-                // MP3 dosyasının içinde gömülü albüm kapağı varsa otomatik sök ve kaydet
                 let coverUrl = null;
                 const embeddedCoverBlob = await extractMp3CoverBlob(audioFile);
                 if (embeddedCoverBlob) {
@@ -1383,7 +1397,6 @@
                 setView('projects');
             };
 
-            // Manuel galeriden kapak seçme
             const handleCoverChange = async (e) => {
                 const file = e.target.files?.[0];
                 if (!file || !currentProject) return;
@@ -1518,7 +1531,6 @@
                 await saveMediaBlob(`${currentProject.id}_audio`, file);
                 setFileBlob(URL.createObjectURL(file));
 
-                // Eğer projenin henüz kapağı yoksa yeni yüklenen mp3'ten gömülü kapağı çek
                 if (!coverBlobUrl) {
                     const embeddedCover = await extractMp3CoverBlob(file);
                     if (embeddedCover) {
@@ -1537,7 +1549,7 @@
                 updateProjectAndSave({ bgVideoType: 'custom' });
             };
 
-            // --- MODEL KİLİTLİ + OTOMATİK YENİDEN DENEMELİ + MOBİL BİLDİRİMLİ ANALİZ ---
+            // --- MODEL KİLİTLİ + OTOMATİK YENİDEN DENEMELİ + NATIVE BİLDİRİMLİ ANALİZ ---
             const analyzeFile = async (file, projectToUpdate, modeOverride = null) => {
                 if (!effectiveApiKey) {
                     durumBannerGuncelle("analiz için ayarlar'dan gemini api key girmelisin.", "hata");
@@ -1562,6 +1574,9 @@
                 let wakeLock = null;
                 if ('wakeLock' in navigator) {
                     wakeLock = await navigator.wakeLock.request('screen').catch(() => null);
+                }
+                if (window.LyricalNative) {
+                    window.LyricalNative.acquireWakeLock();
                 }
 
                 durumBannerGuncelle(`ses dosyası hazırlanıyor (${seciliModel})...`, 'bekle');
@@ -1603,7 +1618,7 @@ Return ONLY valid JSON matching this exact schema:
                     };
 
                     let deneme = 0;
-                    let beklemeSuresiMs = 3000; // ilk hatada 3 sn bekle, sonra katlayarak artar (max 20 sn)
+                    let beklemeSuresiMs = 3000;
 
                     while (true) {
                         if (controller.signal.aborted) {
@@ -1619,7 +1634,6 @@ Return ONLY valid JSON matching this exact schema:
                         );
 
                         try {
-                            // DİKKAT: burada sadece seciliModel kullanılır, asla yedek modele fallback yapılmaz
                             const res = await fetch(
                                 `https://generativelanguage.googleapis.com/v1beta/models/${seciliModel}:generateContent?key=${effectiveApiKey}`,
                                 {
@@ -1633,7 +1647,6 @@ Return ONLY valid JSON matching this exact schema:
                             const data = await res.json().catch(() => ({}));
                             const errMsg = data?.error?.message || res.statusText || "";
 
-                            // 503 (high demand) veya 429 (rate limit) geldiyse döngüye devam et
                             if (
                                 res.status === 503 ||
                                 res.status === 429 ||
@@ -1644,7 +1657,6 @@ Return ONLY valid JSON matching this exact schema:
                                 throw new Error('HIGH_DEMAND');
                             }
 
-                            // api key hatası veya model adı hatası gibi kalıcı sorunlarda döngüden çık
                             if (!res.ok || data?.error) {
                                 throw new Error(`KALICI_HATA: ${errMsg || 'bilinmeyen api hatası'}`);
                             }
@@ -1695,7 +1707,6 @@ Return ONLY valid JSON matching this exact schema:
                                 return;
                             }
 
-                            // yoğunluk veya geçici ağ hatası: bekle ve tekrar dene
                             const saniye = Math.round(beklemeSuresiMs / 1000);
                             durumBannerGuncelle(
                                 `model yoğun (${seciliModel}), ${saniye} sn içinde tekrar denenecek... (#${deneme})`,
@@ -1710,7 +1721,6 @@ Return ONLY valid JSON matching this exact schema:
                                 }, { once: true });
                             });
 
-                            // üst üste çakışmasın diye hafif rastgelelik + tavan 20 saniye
                             beklemeSuresiMs = Math.min(beklemeSuresiMs * 1.6 + Math.random() * 1000, 20000);
                         }
                     }
@@ -1725,6 +1735,9 @@ Return ONLY valid JSON matching this exact schema:
                         aktifAbortControllerRef.current = null;
                     }
                     if (wakeLock) wakeLock.release().catch(() => {});
+                    if (window.LyricalNative) {
+                        window.LyricalNative.releaseWakeLock();
+                    }
                 }
             };
 
@@ -1775,7 +1788,6 @@ Return ONLY valid JSON matching this exact schema:
                     <input type="file" ref={customVideoInputRef} accept="video/*" className="hidden" onChange={handleCustomVideoReupload} />
                     <input type="file" id="cover-file-input" ref={coverFileInputRef} accept="image/*" hidden onChange={handleCoverChange} />
 
-                    {/* ÜST DURUM BANNERI (Turuncu Bekleme / Kırmızı Hata / Yeşil Başarı) */}
                     {statusBanner.visible && (
                         <div
                             id="ai-status-banner"
@@ -1938,7 +1950,6 @@ Return ONLY valid JSON matching this exact schema:
                                 >
                                     {lyrics.length === 0 ? (
                                         <div className="h-full flex flex-col items-center justify-center text-center text-gray-500">
-                                            {/* KAPAK KUTUSU: "Bu projede henüz şarkı sözü yok." yazısının hemen üstü */}
                                             <div
                                                 className="cover-wrapper"
                                                 id="cover-box"
